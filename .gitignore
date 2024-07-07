@@ -1,0 +1,29 @@
+**/.DS_Store/
+**/__pycache__/
+_temp/
+wandb/
+pip.txt
+pip_test.txt
+test.py
+requirements.txt
+
+results/*
+RLAIF_V.egg-info
+
+# pretrained weights
+.ckpt/*
+**/*.parquet
+**/*.bin
+**/*.pth
+**/*.safetensors
+llava-v1.5-7b
+RLAIF-V-7B
+
+# data
+**/*V-Dataset
+**/*V-Dataset_logps
+**/mmhal-bench_with_image.jsonl
+**/val2014
+**/val2014/*.jpg
+**/scienceqa/**/*.png
+**.zip
