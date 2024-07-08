@@ -89,7 +89,10 @@ cd RLAIF-V
 conda create -n rlaifv python=3.10 -y
 conda activate rlaifv
 pip install -e .
-pip install datasets==2.14.6
+pip install datasets==2.14.6 einops 
+
+# adapt to LLaVA-NEXT
+pip install transformers@git+https://github.com/huggingface/transformers.git@1c39974a4c4036fd641bc1191cc32799f85715a4
 ```
 3. Install required spaCy model
 ```bash
