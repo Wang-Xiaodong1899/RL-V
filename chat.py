@@ -194,7 +194,7 @@ class RLAIFVChat:
     def chat(self, input):
         return self.model.chat(input)
 
-def run(model_path="/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-7B"):
+def run(model_path="/mnt/storage/user/wangxiaodong/RLAIF-V/llava-RLAIF-V-7B"):
     print(f'test {model_path}')
     chat_model = RLAIFVChat(model_path=model_path)
     image_path="./examples/test.jpeg"
