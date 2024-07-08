@@ -27,3 +27,4 @@ RLAIF-V-7B
 **/val2014/*.jpg
 **/scienceqa/**/*.png
 **.zip
+**/mm-vet/images/*

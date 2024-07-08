@@ -1,16 +1,23 @@
 #!/bin/bash
 
-python -m llava.eval.model_vqa \
-    --model-path liuhaotian/llava-v1.5-13b \
-    --question-file ./playground/data/eval/mm-vet/llava-mm-vet.jsonl \
-    --image-folder ./playground/data/eval/mm-vet/images \
-    --answers-file ./playground/data/eval/mm-vet/answers/llava-v1.5-13b.jsonl \
-    --temperature 0 \
-    --conv-mode vicuna_v1
+cktp_dir=$1 #/mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b
+base_dir=./playground/data/eval/mm-vet
+save_name=$2 #llava-v1.5-7b
 
-mkdir -p ./playground/data/eval/mm-vet/results
+# python llava/eval/model_vqa.py \
+#     --model-path ${cktp_dir} \
+#     --question-file ${base_dir}/llava-mm-vet.jsonl \
+#     --image-folder ${base_dir}/images \
+#     --answers-file ${base_dir}/answers/${save_name}.jsonl \
+#     --temperature 0 \
+#     --conv-mode vicuna_v1
 
-python scripts/convert_mmvet_for_eval.py \
-    --src ./playground/data/eval/mm-vet/answers/llava-v1.5-13b.jsonl \
-    --dst ./playground/data/eval/mm-vet/results/llava-v1.5-13b.json
+mkdir -p ${base_dir}/results
 
+python ${base_dir}/convert_mmvet_for_eval.py \
+    --src ${base_dir}/answers/${save_name}.jsonl \
+    --dst ${base_dir}/results/${save_name}.json
+
+# python ${base_dir}/mm-vet_evaluator.py \
+#     --mmvet_path ${base_dir} \
+#     --result_file ${base_dir}/results/${save_name}.json
