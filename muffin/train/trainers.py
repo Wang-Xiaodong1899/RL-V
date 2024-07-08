@@ -156,6 +156,8 @@ def kto_loss(policy_chosen_logps: torch.FloatTensor,
              reference_chosen_logps: torch.FloatTensor,
              reference_rejected_logps: torch.FloatTensor,
              beta: float,
+             desirable_weight: float,
+             undesirable_weight: float,
              reference_free: bool = False) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
     """Compute the DPO loss for a batch of policy and reference model log probabilities.
 
@@ -173,28 +175,36 @@ def kto_loss(policy_chosen_logps: torch.FloatTensor,
         The chosen_rewards and rejected_rewards tensors contain the rewards for the chosen and rejected responses, respectively.
     """
     # stop grad for kl
+    # chosen or rejected batch has zero for mask logps
     chosen_kl = (policy_chosen_logps - reference_chosen_logps).mean().clamp(min=0).detach()
     rejected_kl = (policy_rejected_logps - reference_rejected_logps).mean().clamp(min=0).detach()
+    kl = ((chosen_kl + rejected_kl) /2).clamp(min=0).detach()
 
     chosen_logratios = policy_chosen_logps - reference_chosen_logps
     rejected_logratios = policy_rejected_logps - reference_rejected_logps
 
     chosen_losses = 1 - F.sigmoid(beta * (chosen_logratios - kl))
+    chosen_rewards = beta * chosen_logratios.detach()
+    rejected_losses = 1 - F.sigmoid(beta * (kl - rejected_logratios))
+    rejected_rewards = beta * rejected_logratios.detach()
+    
     # TODO unfinished
 
     # pi_logratios = policy_chosen_logps - policy_rejected_logps
     # ref_logratios = reference_chosen_logps - reference_rejected_logps
 
-    if reference_free:
-        ref_logratios = 0
+    # if reference_free:
+    #     ref_logratios = 0
+    # import random
+    # desirable_plug = 1.0
+    # undesirable_plug = 1.0
+    # prob = random.random()
+    # if prob < 0.5:
+    #     undesirable_plug = 0.
+    # else:
+    #     desirable_plug = 0.
 
-    logits = pi_logratios - ref_logratios
-
-    losses = -F.logsigmoid(beta * logits)
-    chosen_rewards = beta * (policy_chosen_logps -
-                             reference_chosen_logps).detach()
-    rejected_rewards = beta * \
-        (policy_rejected_logps - reference_rejected_logps).detach()
+    losses = desirable_weight * chosen_losses + undesirable_weight * rejected_losses
 
     return losses, chosen_rewards, rejected_rewards
 
@@ -263,9 +273,14 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
         else:
             concatenated_images = torch.cat([images, images], dim=0)
     elif args.task == 'KTO':
-        win_images = data_dict.pop('win_images')
-        rej_images = data_dict.pop('rej_images')
-        concatenated_images = torch.cat([win_images, rej_images], dim=0)
+        images = data_dict.pop('images')
+        if is_minicpm:
+            # print(data_dict.keys())
+            data_dict.pop('win_context_ids')
+            data_dict.pop('rej_context_ids')
+            concatenated_images = images
+        else:
+            concatenated_images = torch.cat([images, images], dim=0)
 
     concatenated_input_ids = data_dict.pop('concatenated_input_ids')
     concatenated_labels = data_dict.pop('concatenated_labels')
@@ -383,3 +398,41 @@ class LLaVA15DPOTrainer(ZephyrTrainer):
         self.log(metrics)
 
         return loss
+
+
+class LLaVA15KTOTrainer(ZephyrTrainer):
+
+    def compute_loss(self, model: Module, inputs: dict, return_outputs=False):
+        if self.args.past_index >= 0:
+            raise NotImplementedError
+
+        def gather_and_do_mean(x):
+            return self._nested_gather(x.mean()).mean().item()
+
+        data_dict = inputs
+        policy_win_logp, policy_rej_logp, ref_win_logp, ref_rej_logp, beta = get_beta_and_logps(
+            data_dict, model, self.args, is_llava15=True)
+
+        losses, chosen_rewards, rejected_rewards = kto_loss(policy_win_logp,
+                                                            policy_rej_logp,
+                                                            ref_win_logp,
+                                                            ref_rej_logp,
+                                                            beta=beta,
+                                                            desirable_weight=1.0,
+                                                            undesirable_weight=1.0)
+        reward_accuracies = (chosen_rewards > rejected_rewards).float()
+
+        SFT_weight = float(os.environ.get('SFT_weight', 0.0))
+        DPO_weight = float(os.environ.get('DPO_weight', 1.0))
+        loss = DPO_weight * losses.mean() - SFT_weight * policy_win_logp.mean()
+
+        t = 'train' if model.training else 'test'
+        metrics = {}
+        metrics = collect_preference_metrics(metrics, t, chosen_rewards, rejected_rewards,
+                                             policy_rej_logp, policy_win_logp,
+                                             ref_rej_logp, ref_win_logp, reward_accuracies,
+                                             gather_and_do_mean)
+        self.log(metrics)
+
+        return loss
+

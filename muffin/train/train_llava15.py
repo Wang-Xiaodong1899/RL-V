@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
-from muffin.train.trainers import LLaVA15DPOTrainer
+from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer
 from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset,RLAIFVDataset, RLHFVDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
@@ -159,10 +159,15 @@ class KTODataset(Dataset):
                  data_dir: str,
                  multimodal_cfg: dict,
                  reference_model = None):
-        super(DPODataset, self).__init__()
+        super(KTODataset, self).__init__()
 
         self.tokenizer = tokenizer
-        self.list_data_dict = RLAIFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        if 'RLAIF-V-Dataset' in data_dir:
+            self.list_data_dict = RLAIFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif 'RLHF-V-Dataset' in data_dir: # default small dataset
+            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        else:
+            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         self.multimodal_cfg = multimodal_cfg
         self.multimodal_cfg['keep_image_tag'] = True
 
@@ -362,6 +367,9 @@ def init_model(model_args, data_args, training_args, attn_implementation):
         raise NotImplementedError
     elif training_args.task == 'DPO':
         data_module = make_dpo_data_module(tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
+    elif training_args.task == 'KTO':
+        data_module = make_kto_data_module(tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
+    
 
     return model.cuda(), data_module, tokenizer
 
@@ -403,6 +411,12 @@ def train(attn_implementation=None):
     elif training_args.task == 'DPO':
         # TODO
         trainer = LLaVA15DPOTrainer(model=model,
+                                   tokenizer=tokenizer,
+                                   args=training_args,
+                                   **data_module)
+    elif training_args.task == 'KTO':
+        # TODO
+        trainer = LLaVA15KTOTrainer(model=model,
                                    tokenizer=tokenizer,
                                    args=training_args,
                                    **data_module)

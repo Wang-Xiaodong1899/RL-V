@@ -34,7 +34,8 @@ def eval_model(args):
     model_path = os.path.expanduser(args.model_path)
     # model_name = get_model_name_from_path(model_path)
     model_name = "llava-v1.5-7b"
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
+    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=None, model_name=model_name, device_map={"": 'cuda'})
+    print(f'loaded pretrained model from {model_path}')
 
     questions = json.load(open(os.path.expanduser(args.question_file), "r"))
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)

@@ -149,6 +149,7 @@ class RLAIFV7B:
         model_name='llava-v1.5-7b'
         tokenizer, model, image_processor, context_len = load_pretrained_model(
         model_path, model_base=None,model_name=model_name, device_map={"": 'cuda'})
+        print(f'loaded pretrained model from {model_path}')
         self.tokenizer=tokenizer
         self.model=model
         self.image_processor=image_processor
