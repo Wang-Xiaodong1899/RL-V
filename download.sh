@@ -1,0 +1,1 @@
+huggingface-cli download --repo-type dataset --resume-download LanguageBind/Video-LLaVA --local-dir video-llava --include "videochatgpt_tune_2.zip.001" "videochatgpt_tune_2.zip.002" "videochatgpt_tune_2.zip.003" "videochatgpt_tune_2.zip.004"

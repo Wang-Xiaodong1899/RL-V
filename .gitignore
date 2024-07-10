@@ -28,3 +28,5 @@ RLAIF-V-7B
 **/scienceqa/**/*.png
 **.zip
 **/mm-vet/images/*
+data_process/dataset/train/*.mp4
+data_process/dataset/frames/*
