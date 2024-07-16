@@ -18,6 +18,8 @@ RLAIF_V.egg-info
 **/*.safetensors
 llava-v1.5-7b
 RLAIF-V-7B
+LLaVA-NeXT-Video-7B
+roberta-large-wanli
 
 # data
 **/*V-Dataset
@@ -28,5 +30,10 @@ RLAIF-V-7B
 **/scienceqa/**/*.png
 **.zip
 **/mm-vet/images/*
+**/textvqa/train_images/*
+**/vizwiz/test/*
+**/vqav2/test2015/*
 data_process/dataset/train/*.mp4
 data_process/dataset/frames/*
+
+*.jsonl

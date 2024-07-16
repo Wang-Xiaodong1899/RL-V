@@ -166,6 +166,187 @@ class RLHFVDataset(torch_data.Dataset):
         return data_dict
 
 
+# self data
+class HIERARDataset(torch_data.Dataset):
+    def __init__(self, data_dir: str, reference_model=None,
+                 tokenizer=None, image_token_len=None, img_processor=None, use_im_start_end=True, is_llava15=False, with_image=False):
+        super().__init__()
+        
+        self.with_image = with_image
+
+        if not op.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+
+        data_path = [file for file in os.listdir(data_dir) if file.endswith('.parquet') and 'logp' in file]
+        self.data_path = data_dir
+
+        if len(data_path) == 0:
+            assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
+            import json
+            jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/hieracaps_ds_6000.jsonl"
+            hf_data = []
+            with open(jsonl_path, 'r', encoding='utf-8') as file:
+                for line in file:
+                    json_obj = json.loads(line.strip())
+                    hf_data.append(json_obj)
+                    
+            print(f'read data length {len(hf_data)}')
+
+            inference_logp(reference_model, tokenizer, hf_data, self.data_path,
+                            image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15,
+                            with_image=with_image)
+
+            torch.distributed.barrier()
+
+            self.data = hf_datasets.load_dataset(data_dir)['train']
+        else:
+            data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/HIERAR-Dataset-6k_logps"
+            self.data = hf_datasets.load_dataset(data_dir)['train']
+
+        self.line_idx = list(range(len(self.data)))
+        random.shuffle(self.line_idx)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        sample = self.data[self.line_idx[index]]
+        question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
+
+        if self.with_image:
+            image = bytes_to_PIL_image(sample['image']['bytes'])
+
+        metainfo = {
+            "origin_dataset": sample['origin_dataset'],
+            "origin_split": sample['origin_split'],
+            "origin_idx": sample['idx'],
+            "image_id": sample['image_path'],
+        }
+
+        if self.with_image:
+            data_dict = {
+                'image': image,
+                "question": question,
+                "chosen": chosen,
+                "rejected": rejected,
+                "idx": sample['idx'],
+                "metainfo": metainfo
+            }
+        else:
+            data_dict = {
+                "question": question,
+                "chosen": chosen,
+                "rejected": rejected,
+                "idx": sample['idx'],
+                "metainfo": metainfo
+            }
+        logps=json.loads(sample['logps'])
+
+        if type(logps) == type([]):
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps
+        else:
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
+
+        return data_dict
+
+
+# code for Hound-DPO datasets
+import numpy as np
+
+def load_video_frames(video_frame_path, args):
+    filenames = os.listdir(video_frame_path)
+    total_frame_num = len(filenames)
+    uniform_sampled_frames = np.linspace(0, total_frame_num - 1, args.for_get_frames_num, dtype=int)
+    frame_idx = uniform_sampled_frames.tolist()
+    spare_frames = []
+    for idx in frame_idx:
+        spare_frames.append(np.array(Image.open(os.path.join(video_frame_path, filenames[idx] ))))
+    spare_frames = np.array(spare_frames)
+    return spare_frames
+
+
+
+class HoundDataset(torch_data.Dataset):
+    def __init__(self, data_dir: str, reference_model=None,
+                 tokenizer=None, image_token_len=None, img_processor=None, use_im_start_end=True, is_llava15=False):
+        super().__init__()
+
+        if not op.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+        
+        # data_dir = "./RLHF-V-Dataset"
+
+        data_path = [file for file in os.listdir(data_dir) if file.endswith('.parquet') and 'logp' in file]
+        self.data_path = data_dir
+
+        if len(data_path) == 0:
+            assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
+
+            # if not op.exists('./RLAIF-V-Dataset'):
+            #     os.mkdir('./RLAIF-V-Dataset')
+            # hf_data = hf_datasets.load_dataset("/mnt/storage/user/wangxiaodong/RLAIF-V/RLHF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            # TODO need load from local video
+            
+            hf_data = []
+
+            inference_logp(reference_model, tokenizer, hf_data, self.data_path,
+                            image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
+
+            torch.distributed.barrier()
+
+            self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+        else:
+            data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLHF-V-Dataset_logps"
+            self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+
+        self.line_idx = list(range(len(self.data)))
+        random.shuffle(self.line_idx)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        sample = self.data[self.line_idx[index]]
+        
+        question = {'from': 'human', 'value': f"<image>\n{sample['prompt']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
+
+        # image = bytes_to_PIL_image(sample['image']['bytes'])
+        # TODO read video
+
+        metainfo = {
+            "origin_dataset": sample['origin_dataset'],
+            "origin_split": sample['origin_split'],
+            "origin_idx": sample['idx'],
+            "image_id": sample['image_path'],
+        }
+
+        data_dict = {
+            'image': image,
+            "question": question,
+            "chosen": chosen,
+            "rejected": rejected,
+            "idx": sample['idx'],
+            "metainfo": metainfo
+        }
+        logps=json.loads(sample['logps'])
+
+        if type(logps) == type([]):
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps
+        else:
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
+
+        return data_dict
+
+
+
 
 class ChunckedRandomSampler(Sampler[int]):
     def __init__(self, data_source, chunk_size=5000) -> None:

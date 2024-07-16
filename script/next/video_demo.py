@@ -132,6 +132,8 @@ def run_inference(args):
         video = load_video(video_path, args)
         video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].half().cuda()
         video = [video]
+    else:
+        print(f'{video_path} does not exists!')
 
     # try:
     # Run inference on the video and add the output to the list

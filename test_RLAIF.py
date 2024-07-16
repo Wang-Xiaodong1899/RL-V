@@ -21,3 +21,12 @@ import fire
 # tokenizer, model, image_processor, context_len = load_pretrained_model(
 # model_path, model_base=None,model_name=model_name, device_map={"": 'cuda'})
 
+tokenizer = AutoTokenizer.from_pretrained(
+        "/mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b",
+        cache_dir=None,
+        model_max_length=512,
+        padding_side="right",
+        use_fast=False,
+        truncation_side='right',
+    )
+print(f'loaded tokenizer successfully')

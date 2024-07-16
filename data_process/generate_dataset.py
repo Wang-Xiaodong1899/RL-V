@@ -13,6 +13,7 @@ from multiprocessing import Pool
 # from pytube import YouTube
 from pytubefix import YouTube
 from time import sleep
+from tqdm import tqdm
 
 class Data:
     def __init__(self, url, id):
@@ -74,7 +75,7 @@ class DataDownloader:
         print("[INFO] Loading data list ... ",end='')
         # self.dataroot = dataroot
         # self.list_seqnames = sorted(glob.glob(dataroot + '/*.txt'))
-        self.output_root = './dataset/' + mode + '/'
+        self.output_root = '/mnt/storage/user/wangxiaodong/RLAIF-V/data_process/dataset/' + mode + '/'
         self.mode =  mode
         
         all_data = []
@@ -93,7 +94,7 @@ class DataDownloader:
             os.makedirs(self.output_root)
         else:
             print("[INFO] The output dir has already existed.")
-            self.isDone = True
+            # self.isDone = True
 
         self.list_data = []
         if not self.isDone:
@@ -118,16 +119,26 @@ class DataDownloader:
 
     def Run(self):
         print("[INFO] Start downloading {} movies".format(len(self.list_data)))
+        
+        # read local video
+        videonames = os.listdir("/mnt/storage/user/wangxiaodong/RLAIF-V/data_process/dataset/train")
+        exsited_videos = []
+        for videoname in videonames:
+            if videoname.endswith(".mp4"):
+                exsited_videos.append(videoname.split(".mp4")[0])
+        print("[INFO] Existing {} movies".format(len(exsited_videos)))
 
-        for global_count, data in enumerate(self.list_data):
+        for global_count, data in tqdm(enumerate(self.list_data[::-1])):
+            if data.id in exsited_videos:
+                continue
             print("[INFO] Downloading {} ".format(data.url))
             try :
                 # sometimes this fails because of known issues of pytube and unknown factors
-                yt = YouTube(data.url)
+                yt = YouTube(data.url, use_oauth=True, allow_oauth_cache=True)
                 stream = yt.streams.first()
                 stream.download(self.output_root, f"{data.id}.mp4")
             except Exception as e:
-                failure_log = open('failed_videos_'+mode+'.txt', 'a')
+                failure_log = open('failed_videos_new_reverse_'+mode+'.txt', 'a')
                 # for seqname in data.list_seqnames:
                 failure_log.writelines(data.id + '\n')
                 failure_log.close()

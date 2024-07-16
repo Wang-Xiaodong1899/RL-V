@@ -3,6 +3,9 @@ import argparse
 import json
 import re
 
+import sys
+sys.path.append('/mnt/storage/user/wangxiaodong/RLAIF-V/')
+
 from llava.eval.m4c_evaluator import TextVQAAccuracyEvaluator
 
 

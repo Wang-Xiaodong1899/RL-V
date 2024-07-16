@@ -1,14 +1,14 @@
 export PYTHONPATH=$PYTHONPATH:`realpath .`
 
 task_name=llava15_7b_KTO_rlaifv
-exp_name=llava15_rlaifv_pbs1_V8_step-20k-ZERO-3
+exp_name=llava15_rlaifv_pbs1_V8_step-20k-ZERO-3-run1
 
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
     --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
     --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset_logps/ \
     --image_folder not_used \
-    --vision_tower openai/clip-vit-large-patch14-336 \
+    --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --fully_tune True \

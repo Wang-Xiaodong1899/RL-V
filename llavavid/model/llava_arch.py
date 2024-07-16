@@ -206,6 +206,7 @@ class LlavaMetaForCausalLM(ABC):
         # import pdb; pdb.set_trace()
         if type(images) is list or images.ndim == 5:
             # not reseshape for long video
+            # b t l h w
 
             if not long_video:
                 images_list = []

@@ -264,23 +264,30 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
 
     beta = data_dict.pop('beta')
     if args.task == 'DPO':
-        images = data_dict.pop('images')
+        images = data_dict.pop('images', None)
         if is_minicpm:
             # print(data_dict.keys())
             data_dict.pop('win_context_ids')
             data_dict.pop('rej_context_ids')
             concatenated_images = images
         else:
-            concatenated_images = torch.cat([images, images], dim=0)
+            if images is not None or len(images) == 0:
+                concatenated_images = None
+            else:
+                concatenated_images = torch.cat([images, images], dim=0)
+                
     elif args.task == 'KTO':
-        images = data_dict.pop('images')
+        images = data_dict.pop('images', None)
         if is_minicpm:
             # print(data_dict.keys())
             data_dict.pop('win_context_ids')
             data_dict.pop('rej_context_ids')
             concatenated_images = images
         else:
-            concatenated_images = torch.cat([images, images], dim=0)
+            if images is not None or len(images) == 0:
+                concatenated_images = None
+            else:
+                concatenated_images = torch.cat([images, images], dim=0)
 
     concatenated_input_ids = data_dict.pop('concatenated_input_ids')
     concatenated_labels = data_dict.pop('concatenated_labels')
@@ -290,6 +297,10 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
     win_token_weight = data_dict.pop('win_token_weight')
     rej_token_weight = data_dict.pop('rej_token_weight')
     concatenated_token_weight = data_dict.pop('concatenated_token_weight')
+    
+    # print(f'concatenated_input_ids: {concatenated_input_ids}')
+    
+    # print(f"concatenated_labels: {concatenated_labels}")
 
     if is_llava15:
         (
@@ -307,11 +318,20 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
             labels=concatenated_labels,
             images=concatenated_images,
         )
-        output = model.forward(
-            inputs_embeds=concatenated_inputs_embeds,
-            labels=None,
-            **data_dict,
-        )
+        if concatenated_inputs_embeds is not None:
+            output = model.forward(
+                inputs_embeds=concatenated_inputs_embeds,
+                labels=None,
+                **data_dict,
+            )
+        else:
+            output = model.forward(
+                input_ids=concatenated_input_ids,
+                attention_mask=concatenated_attention_mask,
+                labels=concatenated_labels,
+                **data_dict,
+            )
+            
         log_prob, average_log_prob = get_batch_logps(
             output.logits, concatenated_labels, return_per_token_logp=False)
         if args.dpo_use_average:

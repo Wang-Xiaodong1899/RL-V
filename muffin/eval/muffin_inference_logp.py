@@ -9,7 +9,7 @@ import pandas as pd
 import torch.utils.data as torch_data
 import PIL.Image as PIL_image
 from functools import partial
-from muffin.train.train_utils import encode_multimodal_preference_sample, SFT_collator_fn, preprocess_v1
+from muffin.train.train_utils import encode_multimodal_preference_sample, SFT_collator_fn, preprocess_v1, preprocess_llavavid
 
 
 def bytes_to_PIL_image(img_buffer):
@@ -120,9 +120,94 @@ class PreferenceInferenceDataset(torch_data.Dataset):
                  tokenizer,
                  image_token_len,
                  img_processor,
+                 use_im_start_end=True,
+                 has_image=True):
+
+        self.data = data
+
+        self.mm_cfg = {
+            'image_processor': img_processor,
+            'is_multimodal': True if has_image else False,
+            'image_token_len': image_token_len,
+            'use_im_start_end': use_im_start_end,
+            'keep_image_tag': True
+        }
+        self.tokenizer = tokenizer
+        self.has_image = has_image
+
+    def __getitem__(self, index):
+        sample = self.data[index]
+        metainfo = {
+            "origin_dataset": sample['origin_dataset'],
+            "origin_split": sample['origin_split'], #json.loads(sample['origin_split']),
+            "origin_idx": sample['idx'],
+            "image_id": sample['image_path'],
+        }
+        if sample['ds_name'] == 'RLHF-V-Dataset':
+            dict_data = json.loads(sample['text'])
+            question = {'from': 'human', 'value': f"<image>\n{dict_data['question']}"}
+            chosen = {'from': 'gpt', 'value': dict_data['chosen']}
+            rejected = {'from': 'gpt', 'value': dict_data['rejected']}
+        else:
+            question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+            chosen = {'from': 'gpt', 'value': sample['chosen']}
+            rejected = {'from': 'gpt', 'value': sample['rejected']}
+
+        if self.has_image:
+            image = bytes_to_PIL_image(sample['image']['bytes'])
+
+            formated_sample = {
+                'image': image,
+                "question": question,
+                "chosen": chosen,
+                "rejected": rejected,
+                "idx": sample['idx'],
+                "metainfo": metainfo
+            }
+        else:
+            formated_sample = {
+                "question": question,
+                "chosen": chosen,
+                "rejected": rejected,
+                "idx": sample['idx'],
+                "metainfo": metainfo
+            }
+        preprocess_func= partial(preprocess_v1, has_image=self.has_image)
+        rej_data_dict, win_data_dict = encode_multimodal_preference_sample(
+            formated_sample, self.tokenizer, self.mm_cfg, preprocess_func=preprocess_func)
+        return rej_data_dict, win_data_dict
+
+    def __len__(self):
+        return len(self.data)
+
+# code for Hound-DPO datasets
+import numpy as np
+from PIL import Image
+
+def load_video_frames(video_frame_path, for_get_frames_num=16):
+    filenames = os.listdir(video_frame_path)
+    total_frame_num = len(filenames)
+    uniform_sampled_frames = np.linspace(0, total_frame_num - 1, for_get_frames_num, dtype=int)
+    frame_idx = uniform_sampled_frames.tolist()
+    spare_frames = []
+    for idx in frame_idx:
+        spare_frames.append(np.array(Image.open(os.path.join(video_frame_path, filenames[idx] ))))
+    spare_frames = np.array(spare_frames)
+    return spare_frames
+
+class VideoPreferenceInferenceDataset(torch_data.Dataset):
+    def __init__(self,
+                 data,
+                 tokenizer,
+                 image_token_len,
+                 img_processor,
+                 video_root_dir,
+                 for_get_frames_nums=16,
                  use_im_start_end=True):
 
         self.data = data
+        self.video_root_dir = video_root_dir
+        self.for_get_frames_nums = for_get_frames_nums
 
         self.mm_cfg = {
             'image_processor': img_processor,
@@ -136,39 +221,35 @@ class PreferenceInferenceDataset(torch_data.Dataset):
     def __getitem__(self, index):
         sample = self.data[index]
         metainfo = {
-            "origin_dataset": sample['origin_dataset'],
-            "origin_split": json.loads(sample['origin_split']),
-            "origin_idx": sample['idx'],
-            "image_id": sample['image_path'],
+            "origin_dataset": "hound_dpo",
+            "video_id": sample["video"]
         }
-        if sample['ds_name'] == 'RLHF-V-Dataset':
-            dict_data = json.loads(sample['text'])
-            
-            question = {'from': 'human', 'value': f"<image>\n{dict_data['question']}"}
-            chosen = {'from': 'gpt', 'value': dict_data['chosen']}
-            rejected = {'from': 'gpt', 'value': dict_data['rejected']}
-        else:
-            question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
-            chosen = {'from': 'gpt', 'value': sample['chosen']}
-            rejected = {'from': 'gpt', 'value': sample['rejected']}
+        question = {'from': 'human', 'value': f"<image>\n{sample['prompt']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
 
-        image = bytes_to_PIL_image(sample['image']['bytes'])
+        # image = bytes_to_PIL_image(sample['image']['bytes'])
+        # TODO read video frames
+        video_id = sample["video"]
+        video_frame_path = os.path.join(self.video_root_dir, video_id)
+        video_array = load_video_frames(video_frame_path, self.for_get_frames_nums)
 
         formated_sample = {
-            'image': image,
+            'video': video_array,
             "question": question,
             "chosen": chosen,
             "rejected": rejected,
-            "idx": sample['idx'],
+            "idx": sample['video'],
             "metainfo": metainfo
         }
-        preprocess_func= partial(preprocess_v1, has_image=True)
+        preprocess_func= partial(preprocess_llavavid, has_image=True)
         rej_data_dict, win_data_dict = encode_multimodal_preference_sample(
             formated_sample, self.tokenizer, self.mm_cfg, preprocess_func=preprocess_func)
         return rej_data_dict, win_data_dict
 
     def __len__(self):
         return len(self.data)
+
 
 
 def pretty_print(data_dict, tokenizer):
@@ -217,7 +298,7 @@ def preference_collator_fn(instances, pad_token_id):
 
 
 
-def get_multimodal_sample_logps(model, dataloader, tokenizer, is_llava15=False):
+def get_multimodal_sample_logps(model, dataloader, tokenizer, is_llava15=False, with_image=True):
     win_logp_list = []
     rej_logp_list = []
 
@@ -238,26 +319,46 @@ def get_multimodal_sample_logps(model, dataloader, tokenizer, is_llava15=False):
                 attention_mask = batch[f'{key}_attention_mask'].cuda()
 
                 if is_llava15:
-                    # print("is llava15")
-                    (
-                        _,
-                        _,
-                        _,
-                        _,
-                        inputs_embeds,
-                        labels
-                    ) = model.prepare_inputs_labels_for_multimodal(
-                        input_ids=input_ids,
-                        position_ids=None,
-                        attention_mask=None,
-                        past_key_values=None,
-                        labels=labels,
-                        images=batch['images'].to(dtype=torch.float16, device='cuda'),
-                    )
-                    output = model.forward(
-                        inputs_embeds=inputs_embeds,
-                        labels=None,
-                    )
+                    if with_image:
+                        (
+                            _,
+                            _,
+                            _,
+                            _,
+                            inputs_embeds,
+                            labels
+                        ) = model.prepare_inputs_labels_for_multimodal(
+                            input_ids=input_ids,
+                            position_ids=None,
+                            attention_mask=None,
+                            past_key_values=None,
+                            labels=labels,
+                            images=batch['images'].to(dtype=torch.float16, device='cuda'),
+                        )
+                        output = model.forward(
+                            inputs_embeds=inputs_embeds,
+                            labels=None,
+                        )
+                    else:
+                        (
+                            _,
+                            _,
+                            _,
+                            _,
+                            inputs_embeds,
+                            labels
+                        ) = model.prepare_inputs_labels_for_multimodal(
+                            input_ids=input_ids,
+                            position_ids=None,
+                            attention_mask=None,
+                            past_key_values=None,
+                            labels=labels,
+                            images=None,
+                        )
+                        output = model.forward(
+                            input_ids=input_ids,
+                            labels=None,
+                        )
                 else:
                     output = model(
                         input_ids=input_ids,
@@ -327,18 +428,19 @@ def write_logp_to_preference_parquet(origin_data, cache_file, logps, overwrite_l
 
     # return df
 
-def inference_logp(model, tokenizer, hf_data, cache_file, image_token_len, img_processor, use_im_start_end, is_llava15=False):
+def inference_logp(model, tokenizer, hf_data, cache_file, image_token_len, img_processor, use_im_start_end, is_llava15=False, with_image=True):
     model = model.to(dtype=torch.float16, device='cuda')
     dataset = PreferenceInferenceDataset(tokenizer=tokenizer,
                                     data = hf_data,
                                     image_token_len=image_token_len,
                                     img_processor=img_processor,
-                                    use_im_start_end=use_im_start_end)
+                                    use_im_start_end=use_im_start_end,
+                                    has_image=with_image)
     collate_fn = partial(preference_collator_fn, pad_token_id=tokenizer.pad_token_id)
     dataloader = torch_data.DataLoader(dataset, batch_size=1, collate_fn=collate_fn,
                                        num_workers=5, shuffle=False, sampler=InferenceSampler(len(dataset)))
-    print(f'model type {next(model.parameters()).dtype}')
-    outputs = get_multimodal_sample_logps(model, dataloader, tokenizer, is_llava15=is_llava15) # win_logp_list, win_avg_logp_list, win_per_token_logp_list, rej_logp_list, rej_avg_logp_list, rej_per_token_logp_list
+    # print(f'model type {next(model.parameters()).dtype}')
+    outputs = get_multimodal_sample_logps(model, dataloader, tokenizer, is_llava15=is_llava15, with_image=with_image) # win_logp_list, win_avg_logp_list, win_per_token_logp_list, rej_logp_list, rej_avg_logp_list, rej_per_token_logp_list
 
     world_size = torch.distributed.get_world_size()
     merged_outputs = [[None for _ in range(world_size)] for i in range(len(outputs))]
@@ -359,3 +461,8 @@ def inference_logp(model, tokenizer, hf_data, cache_file, image_token_len, img_p
 
     del model
     # return df
+
+def video_inference_logp(
+    model, tokenizer, hf_data, cache_file, image_token_len, img_processor, use_im_start_end, is_llava15=False
+):
+    pass

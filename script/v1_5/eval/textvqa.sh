@@ -1,13 +1,17 @@
 #!/bin/bash
 
-python -m llava.eval.model_vqa_loader \
-    --model-path liuhaotian/llava-v1.5-13b \
-    --question-file ./playground/data/eval/textvqa/llava_textvqa_val_v051_ocr.jsonl \
-    --image-folder ./playground/data/eval/textvqa/train_images \
-    --answers-file ./playground/data/eval/textvqa/answers/llava-v1.5-13b.jsonl \
+ckpt_dir=$1
+save_name=$2
+base_dir="./playground/data/eval/textvqa"
+
+python llava/eval/model_vqa_loader.py \
+    --model-path $ckpt_dir \
+    --question-file ${base_dir}/llava_textvqa_val_v051_ocr.jsonl \
+    --image-folder ${base_dir}/train_images \
+    --answers-file ${base_dir}/answers/${save_name}.jsonl \
     --temperature 0 \
     --conv-mode vicuna_v1
 
-python -m llava.eval.eval_textvqa \
-    --annotation-file ./playground/data/eval/textvqa/TextVQA_0.5.1_val.json \
-    --result-file ./playground/data/eval/textvqa/answers/llava-v1.5-13b.jsonl
+python llava/eval/eval_textvqa.py \
+    --annotation-file ${base_dir}/TextVQA_0.5.1_val.json \
+    --result-file ${base_dir}/answers/${save_name}.jsonl

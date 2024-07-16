@@ -15,7 +15,7 @@ from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
 from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer
-from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset,RLAIFVDataset, RLHFVDataset
+from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset,RLAIFVDataset, RLHFVDataset, HIERARDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
 
@@ -130,14 +130,17 @@ class DPODataset(Dataset):
                  multimodal_cfg: dict,
                  reference_model = None):
         super(DPODataset, self).__init__()
+        self.data_dir = data_dir
 
         self.tokenizer = tokenizer
         if 'RLAIF-V-Dataset' in data_dir:
-            self.list_data_dict = RLAIFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+            self.list_data_dict = RLAIFVDataset(data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         elif 'RLHF-V-Dataset' in data_dir: # default small dataset
-            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif 'HIERAR-Dataset' in data_dir:
+            self.list_data_dict = HIERARDataset(data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         else:
-            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer,multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+            self.list_data_dict = RLHFVDataset(data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         self.multimodal_cfg = multimodal_cfg
         self.multimodal_cfg['keep_image_tag'] = True
 
@@ -146,7 +149,11 @@ class DPODataset(Dataset):
 
     def __getitem__(self, i):
         source: dict = self.list_data_dict[i]
-        preprocess_func = partial(preprocess_v1, has_image=True)
+        if 'HIERAR-Dataset' in self.data_dir:
+            has_image = False
+        else:
+            has_image = True
+        preprocess_func = partial(preprocess_v1, has_image=has_image)
         # NOTE get rej and win data
         rej_data_dict, win_data_dict = encode_multimodal_preference_sample(
             source, self.tokenizer, self.multimodal_cfg, preprocess_func=preprocess_func)
@@ -332,7 +339,7 @@ def init_model(model_args, data_args, training_args, attn_implementation):
         vision_tower.to(dtype=torch.bfloat16 if training_args.bf16 else torch.float16, device=training_args.device)
 
         data_args.image_processor = lambda x: vision_tower.image_processor(x)['pixel_values'][0]
-        data_args.is_multimodal = True
+        # data_args.is_multimodal = True
 
         model.config.image_aspect_ratio = data_args.image_aspect_ratio
         model.config.tokenizer_padding_side = tokenizer.padding_side
