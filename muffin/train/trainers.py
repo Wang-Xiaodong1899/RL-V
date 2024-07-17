@@ -271,7 +271,7 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
             data_dict.pop('rej_context_ids')
             concatenated_images = images
         else:
-            if images is not None or len(images) == 0:
+            if images is None or len(images) == 0:
                 concatenated_images = None
             else:
                 concatenated_images = torch.cat([images, images], dim=0)
@@ -284,7 +284,7 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
             data_dict.pop('rej_context_ids')
             concatenated_images = images
         else:
-            if images is not None or len(images) == 0:
+            if images is None or len(images) == 0:
                 concatenated_images = None
             else:
                 concatenated_images = torch.cat([images, images], dim=0)
