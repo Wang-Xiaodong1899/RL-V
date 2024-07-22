@@ -65,7 +65,7 @@ def warp_long_sentence(query):
 if __name__ == "__main__":
     
     # read csv
-    start_row = 6000
+    start_row = 6000 + 6818
     end_row = 16000
     num_rows = end_row - start_row
     filename = f"hieracaps_{start_row}_{end_row}.jsonl"

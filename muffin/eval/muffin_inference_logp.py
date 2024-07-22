@@ -138,30 +138,37 @@ class PreferenceInferenceDataset(torch_data.Dataset):
     def __getitem__(self, index):
         sample = self.data[index]
         metainfo = {
-            "origin_dataset": sample['origin_dataset'],
-            "origin_split": sample['origin_split'], #json.loads(sample['origin_split']),
-            "origin_idx": sample['idx'],
-            "image_id": sample['image_path'],
+            "origin_dataset": sample.get('origin_dataset', ''),
+            "origin_split": sample.get('origin_split', ''), #json.loads(sample['origin_split']),
+            "origin_idx": sample.get('idx', ''),
+            "image_id": sample.get('image_path', ''),
         }
         if sample['ds_name'] == 'RLHF-V-Dataset':
             dict_data = json.loads(sample['text'])
             question = {'from': 'human', 'value': f"<image>\n{dict_data['question']}"}
             chosen = {'from': 'gpt', 'value': dict_data['chosen']}
             rejected = {'from': 'gpt', 'value': dict_data['rejected']}
+        elif sample['ds_name'] == 'SEVA':
+            question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+            chosen = {'from': 'gpt', 'value': sample['chosen']}
+            rejected = {'from': 'gpt', 'value': sample['rejected']}
         else:
             question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
             chosen = {'from': 'gpt', 'value': sample['chosen']}
             rejected = {'from': 'gpt', 'value': sample['rejected']}
 
         if self.has_image:
-            image = bytes_to_PIL_image(sample['image']['bytes'])
-
+            if sample['ds_name'] != 'SEVA':
+                image = bytes_to_PIL_image(sample['image']['bytes'])
+            else:
+                image = Image.open(sample["image_id"]).convert("RGB")
+            
             formated_sample = {
                 'image': image,
                 "question": question,
                 "chosen": chosen,
                 "rejected": rejected,
-                "idx": sample['idx'],
+                "idx": sample.get('idx', ''),
                 "metainfo": metainfo
             }
         else:
@@ -169,7 +176,7 @@ class PreferenceInferenceDataset(torch_data.Dataset):
                 "question": question,
                 "chosen": chosen,
                 "rejected": rejected,
-                "idx": sample['idx'],
+                "idx": sample.get('idx', ''),
                 "metainfo": metainfo
             }
         preprocess_func= partial(preprocess_v1, has_image=self.has_image)

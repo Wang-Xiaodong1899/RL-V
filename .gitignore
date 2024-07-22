@@ -12,6 +12,7 @@ RLAIF_V.egg-info
 
 # pretrained weights
 .ckpt/*
+.ckpt_lora/*
 **/*.parquet
 **/*.bin
 **/*.pth
@@ -20,6 +21,8 @@ llava-v1.5-7b
 RLAIF-V-7B
 LLaVA-NeXT-Video-7B
 roberta-large-wanli
+seva-7b-diffu500
+llava_POVID_stage_two_full
 
 # data
 **/*V-Dataset
@@ -35,5 +38,10 @@ roberta-large-wanli
 **/vqav2/test2015/*
 data_process/dataset/train/*.mp4
 data_process/dataset/frames/*
+hierarcaps/assets/test_imgs/*
+ocr-qa/ocr_vqa/images/*
 
 *.jsonl
+SeVa
+hierarcaps
+POVID

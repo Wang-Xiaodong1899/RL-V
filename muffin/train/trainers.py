@@ -337,7 +337,7 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
         if args.dpo_use_average:
             concatenated_logp = average_log_prob
         else:
-            concatenated_logp =log_prob
+            concatenated_logp = log_prob
     else:
         concatenated_logp = forward_DPO(model,
                                         concatenated_input_ids,

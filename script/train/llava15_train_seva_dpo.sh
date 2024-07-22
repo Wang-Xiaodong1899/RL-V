@@ -1,9 +1,10 @@
 export PYTHONPATH=$PYTHONPATH:`realpath .`
 
-task_name=llava15_7b_DPO_HIER_16k
-exp_name=llava15_HIER-16k_pbs1_V8_step-2000_ZERO-3
+task_name=llava15_7b_DPO-SeVa
+exp_name=llava15-pbs1_V8_step-4125_ZERO3
 
 export WANDB_PROJECT=$task_name
+# export SFT_weight=0.01
 
 # zero-2 for process logps
 # zero-3 for training
@@ -11,8 +12,8 @@ export WANDB_PROJECT=$task_name
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
     --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
-    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/HIERAR-Dataset-16k_logps \
-    --is_multimodal False \
+    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/SEVA-Dataset_logps \
+    --is_multimodal True \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_use_im_start_end False \
@@ -24,14 +25,14 @@ deepspeed ./muffin/train/train_llava15.py \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
     --output_dir .ckpt/$task_name-$exp_name/checkpoints \
-    --max_steps 2000 \
+    --max_steps 4125 \
     --num_train_epochs 3 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 2000 \
+    --save_steps 1375 \
     --save_total_limit 5 \
     --data_source_names '' \
     --data_source_weights 1 \

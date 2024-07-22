@@ -198,7 +198,8 @@ def run(model_path="/mnt/storage/user/wangxiaodong/RLAIF-V/llava-RLAIF-V-7B"):
     print(f'test {model_path}')
     chat_model = RLAIFVChat(model_path=model_path)
     image_path="./examples/test.jpeg"
-    msgs = "First describe the image, and then tell me the proper action the car should do?"
+    # msgs = "First describe the image, and then tell me the proper action the car should do?"
+    msgs = "How many sheep in the image? The number is:"
     inputs = {"image": image_path, "question": msgs}
     answer = chat_model.chat(inputs)
     print(answer)

@@ -1,7 +1,7 @@
 export PYTHONPATH=$PYTHONPATH:`realpath .`
 
-task_name=llava15_7b_DPO_HIER_16k
-exp_name=llava15_HIER-16k_pbs1_V8_step-2000_ZERO-3
+task_name=llava15_7b_DPO_RLAIF-HIER_6k
+exp_name=llava15_RLAIF-HIER-6k_pbs1_V8_step-2000_ZERO-3
 
 export WANDB_PROJECT=$task_name
 
@@ -11,8 +11,8 @@ export WANDB_PROJECT=$task_name
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
     --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
-    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/HIERAR-Dataset-16k_logps \
-    --is_multimodal False \
+    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-HIER-Dataset_logps \
+    --is_multimodal True \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_use_im_start_end False \
@@ -31,7 +31,7 @@ deepspeed ./muffin/train/train_llava15.py \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 2000 \
+    --save_steps 1000 \
     --save_total_limit 5 \
     --data_source_names '' \
     --data_source_weights 1 \

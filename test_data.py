@@ -5,9 +5,14 @@ import datasets as hf_datasets
 
 # print(type(hf_data))
 
-data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLHF-V-Dataset_logps"
+# data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLHF-V-Dataset_logps"
+
+data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset"
 data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
 
+
+
+print(len(data))
 sample = data[0]
 print(sample.keys())
 

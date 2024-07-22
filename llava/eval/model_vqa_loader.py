@@ -12,7 +12,7 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
-from llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path
+from llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path, KeywordsStoppingCriteria
 from torch.utils.data import Dataset, DataLoader
 
 from PIL import Image
@@ -84,10 +84,14 @@ def eval_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     # model_name = get_model_name_from_path(model_path)
-    model_name = "llava-v1.5-7b"
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=None, model_name=model_name, device_map={"": 'cuda'})
+    if args.model_base == None:
+        model_name = "llava-v1.5-7b"
+        tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
+    else:
+        model_name = "llava_lora_model"  # default llava_lora_model
+        tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
     print(f'loaded pretrained model from {model_path}')
-
+    
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
     answers_file = os.path.expanduser(args.answers_file)
@@ -105,18 +109,34 @@ def eval_model(args):
         cur_prompt = line["text"]
 
         input_ids = input_ids.to(device='cuda', non_blocking=True)
+        
+        conv_mode = "llava_v1"
+        conv = conv_templates[conv_mode].copy()
+        stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
+        keywords = [stop_str]
+        stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
 
         with torch.inference_mode():
+            print('model dtype: ', next(model.parameters()).dtype)
+            # output_ids = model.generate(
+            #     input_ids,
+            #     images=image_tensor.to(dtype=torch.float16, device='cuda', non_blocking=True),
+            #     image_sizes=image_sizes,
+            #     do_sample=False,  # default do_sample is False
+            #     temperature=args.temperature,
+            #     top_p=args.top_p,
+            #     num_beams=args.num_beams,
+            #     max_new_tokens=args.max_new_tokens,
+            #     use_cache=True)
+            
             output_ids = model.generate(
                 input_ids,
                 images=image_tensor.to(dtype=torch.float16, device='cuda', non_blocking=True),
-                image_sizes=image_sizes,
-                do_sample=True if args.temperature > 0 else False,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                num_beams=args.num_beams,
-                max_new_tokens=args.max_new_tokens,
-                use_cache=True)
+                do_sample=False,
+                temperature=1.0,
+                max_new_tokens=512,
+                use_cache=True,
+                stopping_criteria=[stopping_criteria])
 
         outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
 
