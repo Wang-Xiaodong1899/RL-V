@@ -152,13 +152,21 @@ class PreferenceInferenceDataset(torch_data.Dataset):
             question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
             chosen = {'from': 'gpt', 'value': sample['chosen']}
             rejected = {'from': 'gpt', 'value': sample['rejected']}
+        elif sample['ds_name'] == 'POVID':
+            question = sample["rejected_conversations"][0]  # from human
+            rejected = sample["rejected_conversations"][1]  # from gpt
+            chosen = sample["conversations"][1] # from gpt
+        elif sample['ds_name'] == 'CSR':
+            question = sample["rejected_conversations"][0]  # from human
+            rejected = sample["rejected_conversations"][1]  # from gpt
+            chosen = sample["conversations"][1] # from gpt
         else:
             question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
             chosen = {'from': 'gpt', 'value': sample['chosen']}
             rejected = {'from': 'gpt', 'value': sample['rejected']}
 
         if self.has_image:
-            if sample['ds_name'] != 'SEVA':
+            if sample['ds_name'] not in ['SEVA', 'POVID', 'CSR']:
                 image = bytes_to_PIL_image(sample['image']['bytes'])
             else:
                 image = Image.open(sample["image_id"]).convert("RGB")

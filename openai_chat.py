@@ -23,7 +23,7 @@ The response is:
 query = "wood => firewood => firewood on the ground => firewood from the sawed pine trees lie on the ground"
 
 completion = openai.chat.completions.create(
-    model="gpt-3.5-turbo",
+    model="gpt-4o-mini",
     messages=[
         {
         "role": "user",
@@ -33,4 +33,4 @@ completion = openai.chat.completions.create(
 )
 
 print(completion.choices[0].message.content)
-# print(completion.model)
+print(completion.model)

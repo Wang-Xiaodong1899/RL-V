@@ -15,7 +15,7 @@ from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
 from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer
-from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset
+from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
 
@@ -160,7 +160,8 @@ class TrainingArguments(transformers.TrainingArguments):
             "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
         },
     )
-    max_steps: int = field(default=1_000)
+    # max_steps: int = field(default=1_000)
+    num_train_epochs: int = field(default=1)
     no_randaug: bool = False
 
     task: str = field(
@@ -231,6 +232,12 @@ class DPODataset(Dataset):
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         elif 'SEVA' in data_dir:
             self.list_data_dict = SEVADataset(
+                data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif 'POVID' in data_dir:
+            self.list_data_dict = POVIDDataset(
+                data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif 'CSR' in data_dir:
+            self.list_data_dict = CSRDataset(
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         else:
             self.list_data_dict = RLHFVDataset(

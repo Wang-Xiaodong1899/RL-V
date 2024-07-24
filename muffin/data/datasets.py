@@ -366,7 +366,7 @@ class SEVADataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/SEVA-Dataset_logps"
+            # data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/SEVA-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
@@ -412,6 +412,189 @@ class SEVADataset(torch_data.Dataset):
             data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
 
         return data_dict
+
+
+class POVIDDataset(torch_data.Dataset):
+    def __init__(self, data_dir: str, reference_model=None,
+                 tokenizer=None, image_token_len=None, img_processor=None, use_im_start_end=True, is_llava15=False):
+        super().__init__()
+
+        if not op.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+
+        data_path = [file for file in os.listdir(data_dir) if file.endswith('.parquet') and 'logp' in file]
+        self.data_path = data_dir
+
+        if len(data_path) == 0:
+            assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
+
+            import json
+            json_paths = [
+                "/mnt/storage/user/wangxiaodong/RLAIF-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
+            ]
+            hf_data = []
+            with open(json_paths[0], 'r') as f:
+                data = json.load(f)
+                for item in data:
+                    item['image_id'] = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", item['image'].split('/')[-1])
+                hf_data = hf_data + data
+            
+            
+            # "id", "rejected_conversations", "conversations", "image": ./data/xxx.jpg
+            for item in hf_data:
+                item["ds_name"] = "POVID"
+                item["image"] = item["image_id"]
+                item["question"] = item["conversations"][0]["value"].replace("<image>", "").strip()
+                item["chosen"] = item["conversations"][1]["value"]
+                item["rejected"] = item["rejected_conversations"][1]["value"]
+            # "id", "conversations", "rejected_conversations", "image": path/xxx.jpg
+            print(f'POVID dataset length is {len(hf_data)}')
+            
+            inference_logp(reference_model, tokenizer, hf_data, self.data_path,
+                            image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
+
+            torch.distributed.barrier()
+
+            self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+        else:
+            # data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/POVID-Dataset_logps"
+            self.data = hf_datasets.load_dataset(data_dir)['train']
+            print(f"column names: {self.data.column_names}")
+            self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
+
+        self.line_idx = list(range(len(self.data)))
+        random.shuffle(self.line_idx)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        sample = self.data[self.line_idx[index]]
+        question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
+        
+        img_buffer = sample['image']
+        
+        image = Image.open(img_buffer['path']).convert('RGB')
+
+        metainfo = {
+            "origin_dataset": sample.get('origin_dataset', ''),
+            "origin_split": sample.get('origin_split', ''),
+            "origin_idx": sample.get('idx', ''),
+            "image_id": sample.get('image_path', '')
+        }
+
+        data_dict = {
+            'image': image,
+            "question": question,
+            "chosen": chosen,
+            "rejected": rejected,
+            "idx": sample.get('idx', ''),
+            "metainfo": metainfo
+        }
+        logps=json.loads(sample['logps'])
+
+        if type(logps) == type([]):
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps
+        else:
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
+
+        return data_dict
+
+
+class CSRDataset(torch_data.Dataset):
+    def __init__(self, data_dir: str, reference_model=None,
+                 tokenizer=None, image_token_len=None, img_processor=None, use_im_start_end=True, is_llava15=False):
+        super().__init__()
+
+        if not op.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+
+        data_path = [file for file in os.listdir(data_dir) if file.endswith('.parquet') and 'logp' in file]
+        self.data_path = data_dir
+
+        if len(data_path) == 0:
+            assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
+
+            import json
+            json_paths = [
+                "/mnt/storage/user/wangxiaodong/RLAIF-V/CSR/LLaVA_1.5_7b_2iteration.json"
+            ]
+            hf_data = []
+            with open(json_paths[0], 'r') as f:
+                data = json.load(f)
+                for item in data:
+                    item['image_id'] = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", item['image'].split('/')[-1])
+                hf_data = hf_data + data
+            
+            
+            # "id", "rejected_conversations", "conversations", "image": ./data/xxx.jpg
+            for item in hf_data:
+                item["ds_name"] = "CSR"
+                item["image"] = item["image_id"]
+                item["question"] = item["conversations"][0]["value"].replace("<image>", "").strip()
+                item["chosen"] = item["conversations"][1]["value"]
+                item["rejected"] = item["rejected_conversations"][1]["value"]
+            # "id", "conversations", "rejected_conversations", "image": path/xxx.jpg
+            print(f'CSR dataset length is {len(hf_data)}')
+            
+            inference_logp(reference_model, tokenizer, hf_data, self.data_path,
+                            image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
+
+            torch.distributed.barrier()
+
+            self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+        else:
+            # data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/CSR-Dataset_logps"
+            self.data = hf_datasets.load_dataset(data_dir)['train']
+            print(f"column names: {self.data.column_names}")
+            self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
+
+        self.line_idx = list(range(len(self.data)))
+        random.shuffle(self.line_idx)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        sample = self.data[self.line_idx[index]]
+        question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
+        
+        img_buffer = sample['image']
+        
+        image = Image.open(img_buffer['path']).convert('RGB')
+
+        metainfo = {
+            "origin_dataset": sample.get('origin_dataset', ''),
+            "origin_split": sample.get('origin_split', ''),
+            "origin_idx": sample.get('idx', ''),
+            "image_id": sample.get('image_path', '')
+        }
+
+        data_dict = {
+            'image': image,
+            "question": question,
+            "chosen": chosen,
+            "rejected": rejected,
+            "idx": sample.get('idx', ''),
+            "metainfo": metainfo
+        }
+        logps=json.loads(sample['logps'])
+
+        if type(logps) == type([]):
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps
+        else:
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
+
+        return data_dict
+
 
 
 # code for Hound-DPO datasets

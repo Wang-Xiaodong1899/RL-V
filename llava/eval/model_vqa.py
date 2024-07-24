@@ -33,8 +33,12 @@ def eval_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     # model_name = get_model_name_from_path(model_path)
-    model_name = "llava-v1.5-7b"
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=None, model_name=model_name, device_map={"": 'cuda'})
+    if args.model_base == None:
+        model_name = "llava-v1.5-7b"
+        tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
+    else:
+        model_name = "llava_lora_model"  # default llava_lora_model
+        tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
     print(f'loaded pretrained model from {model_path}')
 
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]

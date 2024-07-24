@@ -1,13 +1,13 @@
-MODEL_VERSION=llava_loraft_dpo_our_ocrvqa8kfilter_diffu500_textvqa8kfilter_diffu500_r1024_a2048
+MODEL_VERSION=RLAIFV-HIER-6k_r1024_a2048_pbs4_V8_1e-7
 
 OCR_DPO_DATA=/mnt/storage/user/wangxiaodong/RLAIF-V/seva_data/ocrvqa_dpo_8k_diffusion_step500.json
 TEXT_DPO_DATA=/mnt/storage/user/wangxiaodong/RLAIF-V/seva_data/textvqa_dpo_8k_filter_diffusion_step500.json
 
 
-project_name=SeVa-SeVaRepo
+project_name=LLaVA-LoRA
 export WANDB_PROJECT=${project_name}
 
-deepspeed muffin/train/train_dpo_seva.py \
+deepspeed muffin/train/train_dpo_lora.py \
     --lora_enable True --lora_r 1024 --lora_alpha 2048 --mm_projector_lr 0 \
     --deepspeed ./script/zero3.json \
     --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
@@ -34,7 +34,7 @@ deepspeed muffin/train/train_dpo_seva.py \
     --save_strategy "steps" \
     --save_steps 50000 \
     --save_total_limit 1 \
-    --learning_rate 2e-6 \
+    --learning_rate 1e-7 \
     --weight_decay 0. \
     --warmup_steps 0 \
     --lr_scheduler_type "cosine" \

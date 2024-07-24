@@ -40,6 +40,8 @@ data_process/dataset/train/*.mp4
 data_process/dataset/frames/*
 hierarcaps/assets/test_imgs/*
 ocr-qa/ocr_vqa/images/*
+COCO/*
+examples/*
 
 *.jsonl
 SeVa

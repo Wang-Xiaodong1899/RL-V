@@ -117,26 +117,26 @@ def eval_model(args):
         stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
 
         with torch.inference_mode():
-            print('model dtype: ', next(model.parameters()).dtype)
-            # output_ids = model.generate(
-            #     input_ids,
-            #     images=image_tensor.to(dtype=torch.float16, device='cuda', non_blocking=True),
-            #     image_sizes=image_sizes,
-            #     do_sample=False,  # default do_sample is False
-            #     temperature=args.temperature,
-            #     top_p=args.top_p,
-            #     num_beams=args.num_beams,
-            #     max_new_tokens=args.max_new_tokens,
-            #     use_cache=True)
-            
+            # print('model dtype: ', next(model.parameters()).dtype)
             output_ids = model.generate(
                 input_ids,
                 images=image_tensor.to(dtype=torch.float16, device='cuda', non_blocking=True),
-                do_sample=False,
-                temperature=1.0,
-                max_new_tokens=512,
-                use_cache=True,
-                stopping_criteria=[stopping_criteria])
+                image_sizes=image_sizes,
+                do_sample=False,  # default do_sample is False
+                temperature=args.temperature,
+                top_p=args.top_p,
+                num_beams=args.num_beams,
+                max_new_tokens=args.max_new_tokens,
+                use_cache=True)
+            
+            # output_ids = model.generate(
+            #     input_ids,
+            #     images=image_tensor.to(dtype=torch.float16, device='cuda', non_blocking=True),
+            #     do_sample=False,
+            #     temperature=1.0,
+            #     max_new_tokens=512,
+            #     use_cache=True,
+            #     stopping_criteria=[stopping_criteria])
 
         outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
 

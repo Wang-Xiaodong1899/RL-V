@@ -24,7 +24,7 @@ else
         --question-file ${base_dir}/llava_pope_test.jsonl \
         --image-folder ${base_dir}/val2014 \
         --answers-file ${base_dir}/answers/${save_name}.jsonl \
-        --temperature 1.0 \
+        --temperature 0 \
         --conv-mode vicuna_v1
 fi
 
