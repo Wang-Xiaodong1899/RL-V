@@ -54,6 +54,11 @@ class DataCollatorForDPODataset(object):
             [x['ref_win_avg_logp'] for x in win_instances])
         batch['ref_rej_avg_logp'] = torch.as_tensor(
             [x['ref_rej_avg_logp'] for x in rej_instances])
+        
+        # NOTE add entail_score
+        if 'entail_score' in rej_instances[0]:
+            batch['entail_score'] = torch.as_tensor(
+            [x['entail_score'] for x in rej_instances])
 
         ref_win_per_token_logp = [torch.as_tensor(
             x['ref_win_per_token_logp']) for x in win_instances]

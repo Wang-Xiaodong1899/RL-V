@@ -74,6 +74,7 @@ if __name__ == "__main__":
     questions = {question['question_id']: question for question in questions}
     answers = [json.loads(q) for q in open(args.result_file)]
     f1_all = []
+    len_all = []
     for file in os.listdir(args.annotation_dir):
         assert file.startswith('coco_pope_')
         assert file.endswith('.json')
@@ -82,5 +83,6 @@ if __name__ == "__main__":
         print('Category: {}, # samples: {}'.format(category, len(cur_answers)))
         f1, _ = eval_pope(cur_answers, os.path.join(args.annotation_dir, file))
         print("====================================")
-        f1_all.append(f1)
-    print(np.array(f1_all).mean())
+        f1_all.append(f1 * len(cur_answers))
+        len_all.append(len(cur_answers))
+    print(np.array(f1_all).sum() / (np.array(len_all).sum()))

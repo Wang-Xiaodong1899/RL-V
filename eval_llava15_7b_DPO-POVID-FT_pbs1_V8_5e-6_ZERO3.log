@@ -1,0 +1,23 @@
+ckpt_dir: /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/llava15_7b_DPO-POVID-FT_pbs1_V8_5e-6_ZERO3/checkpoints/
+save_name: llava15_7b_DPO-POVID-FT_pbs1_V8_5e-6_ZERO3
+model_base: 
+Traceback (most recent call last):
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/eval/model_vqa_loader.py", line 169, in <module>
+    eval_model(args)
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/eval/model_vqa_loader.py", line 89, in eval_model
+    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/model/builder.py", line 117, in load_pretrained_model
+    model = LlavaLlamaForCausalLM.from_pretrained(
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3850, in from_pretrained
+    ) = cls._load_pretrained_model(
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4284, in _load_pretrained_model
+    new_error_msgs, offload_index, state_dict_index = _load_state_dict_into_meta_model(
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 805, in _load_state_dict_into_meta_model
+    set_module_tensor_to_device(model, param_name, param_device, **set_module_kwargs)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 362, in set_module_tensor_to_device
+    raise ValueError(
+ValueError: Trying to set a tensor of shape torch.Size([0]) in "weight" (which has shape torch.Size([32000, 4096])), this look incorrect.
+Traceback (most recent call last):
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/eval/eval_pope.py", line 75, in <module>
+    answers = [json.loads(q) for q in open(args.result_file)]
+FileNotFoundError: [Errno 2] No such file or directory: './playground/data/eval/pope/answers/llava15_7b_DPO-POVID-FT_pbs1_V8_5e-6_ZERO3.jsonl'

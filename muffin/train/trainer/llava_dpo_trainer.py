@@ -12,7 +12,7 @@ class LlavaDPOTrainer(BaseDPOTrainer):
         
     def concatenated_forward(
         self, model, inputs
-    ) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+    ):
         images = inputs["images"]
         chosen_input_ids = inputs["chosen_input_ids"]
         chosen_labels = inputs["chosen_labels"]
@@ -20,6 +20,7 @@ class LlavaDPOTrainer(BaseDPOTrainer):
         reject_input_ids = inputs["reject_input_ids"]
         reject_labels = inputs["reject_labels"]
         reject_attention_mask = inputs["reject_attention_mask"]
+        entail_score = inputs["score"] if "score" in inputs else None
             
         max_dim = max(chosen_input_ids.shape[1], reject_input_ids.shape[1])
         batch_input_ids = torch.zeros((chosen_input_ids.shape[0]*2, max_dim), dtype=chosen_input_ids.dtype, device=chosen_input_ids.device)
@@ -76,6 +77,9 @@ class LlavaDPOTrainer(BaseDPOTrainer):
         chosen_logits = sum(chosen_logits)/len_chosen
         rejected_logits = sum(rejected_logits)/len_chosen
         
+        if entail_score is not None:
+            return (chosen_logps, rejected_logps, chosen_logits, rejected_logits, entail_score)
+        
         return (chosen_logps, rejected_logps, chosen_logits, rejected_logits)
 
     def get_batch_metrics(
@@ -85,29 +89,34 @@ class LlavaDPOTrainer(BaseDPOTrainer):
     ):
         metrics = {}
         
-        (
-            policy_chosen_logps,
-            policy_rejected_logps,
-            policy_chosen_logits,
-            policy_rejected_logits,
-        ) = self.concatenated_forward(self.model, inputs)
+        policy_outputs = self.concatenated_forward(self.model, inputs)
+        policy_chosen_logps, policy_rejected_logps = policy_outputs[0], policy_outputs[1]
+        policy_chosen_logits, policy_rejected_logits = policy_outputs[2], policy_outputs[3]
+        if len(policy_outputs) > 4:
+            entail_score = policy_outputs[4]
         with torch.no_grad():
-            (
-                reference_chosen_logps,
-                reference_rejected_logps,
-                _,
-                _,
-            ) = self.concatenated_forward(self.ref_model, inputs)
+            refer_outputs = self.concatenated_forward(self.ref_model, inputs)
+            reference_chosen_logps, reference_rejected_logps = refer_outputs[0], refer_outputs[1]
 
         policy_rejected_logps = policy_rejected_logps
         reference_rejected_logps = reference_rejected_logps
-           
-        losses, chosen_rewards, rejected_rewards = self.dpo_loss(
-            policy_chosen_logps,
-            policy_rejected_logps,
-            reference_chosen_logps,
-            reference_rejected_logps,
-        )
+        
+        if self.args.task == 'EntailDPO':
+            losses, chosen_rewards, rejected_rewards, new_policy_rejected_logps, new_reference_rejected_logps = self.entail_dpo_loss(
+                policy_chosen_logps,
+                policy_rejected_logps,
+                reference_chosen_logps,
+                reference_rejected_logps,
+                False,
+                entail_score
+            )
+        else:
+            losses, chosen_rewards, rejected_rewards = self.dpo_loss(
+                policy_chosen_logps,
+                policy_rejected_logps,
+                reference_chosen_logps,
+                reference_rejected_logps,
+            )
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
         
         prefix = "eval_" if train_eval == "eval" else ""
@@ -121,6 +130,10 @@ class LlavaDPOTrainer(BaseDPOTrainer):
         metrics[f"referece_{prefix}logps/chosen"] = reference_chosen_logps.detach().cpu().mean()
         metrics[f"{prefix}logits/rejected"] = policy_rejected_logits
         metrics[f"{prefix}logits/chosen"] = policy_chosen_logits
+        
+        if self.args.task == 'EntailDPO':
+            metrics[f"policy_{prefix}logps/new_rejected"] = new_policy_rejected_logps.detach().cpu().mean()
+            metrics[f"referece_{prefix}logps/new_rejected"] = new_reference_rejected_logps.detach().cpu().mean()
 
         return losses.mean(), metrics
     

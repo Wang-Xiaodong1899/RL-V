@@ -305,6 +305,58 @@ class BaseDPOTrainer(Trainer):
 
         return losses, chosen_rewards, rejected_rewards
 
+    
+    def entail_dpo_loss(
+        self,
+        policy_chosen_logps: torch.FloatTensor,
+        policy_rejected_logps: torch.FloatTensor,
+        reference_chosen_logps: torch.FloatTensor,
+        reference_rejected_logps: torch.FloatTensor,
+        reference_free: bool = False,
+        entail_score = torch.FloatTensor,
+    ) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+        """Compute the DPO loss for a batch of policy and reference model log probabilities.
+
+        Args:
+            policy_chosen_logps: Log probabilities of the policy model for the chosen responses. Shape: (batch_size,)
+            policy_rejected_logps: Log probabilities of the policy model for the rejected responses. Shape: (batch_size,)
+            reference_chosen_logps: Log probabilities of the reference model for the chosen responses. Shape: (batch_size,)
+            reference_rejected_logps: Log probabilities of the reference model for the rejected responses. Shape: (batch_size,)
+            beta: Temperature parameter for the DPO loss, typically something in the range of 0.1 to 0.5. We ignore the reference model as beta -> 0.
+            reference_free: If True, we ignore the _provided_ reference model and implicitly use a reference model that assigns equal probability to all responses.
+
+        Returns:
+            A tuple of three tensors: (losses, chosen_rewards, rejected_rewards).
+            The losses tensor contains the DPO loss for each example in the batch.
+            The chosen_rewards and rejected_rewards tensors contain the rewards for the chosen and rejected responses, respectively.
+        """
+        # print(f"entail_score shape: {entail_score.shape}")
+        entail_value = torch.tensor(entail_score[:, 1]).to(policy_chosen_logps.dtype)
+        contra_value = torch.tensor(entail_score[:, 0]).to(policy_chosen_logps.dtype)
+        
+        print("entail value: ", entail_value)
+        
+        entail_weight = torch.log(entail_value + 1)
+        
+        # weighted rejected answer
+        policy_rejected_logps = entail_weight * policy_chosen_logps + (1 - entail_weight) * policy_rejected_logps
+        reference_rejected_logps = entail_weight * reference_chosen_logps + (1 - entail_weight) * reference_rejected_logps
+        
+        pi_logratios = policy_chosen_logps - policy_rejected_logps
+        ref_logratios = reference_chosen_logps - reference_rejected_logps
+
+        if reference_free:
+            ref_logratios = 0
+
+        logits = pi_logratios - ref_logratios
+        
+        losses = -F.logsigmoid(self.beta * logits)
+        chosen_rewards = self.beta * (policy_chosen_logps - reference_chosen_logps).detach()
+        rejected_rewards = self.beta * (policy_rejected_logps - reference_rejected_logps).detach()
+
+        return losses, chosen_rewards, rejected_rewards, policy_rejected_logps, reference_rejected_logps
+
+
     def _get_batch_logps(
         self,
         logits: torch.FloatTensor,

@@ -1,15 +1,17 @@
 export PYTHONPATH=$PYTHONPATH:`realpath .`
 
+lr=$1 # 5e-7
+
 task_name=llava15_7b_DPO_RLAIF-HIER_6k
-exp_name=llava15_RLAIF-HIER-6k_pbs1_V8_step-2000_ZERO-3
+exp_name=llava15_RLAIF-HIER-6k_pbs1_V8_${lr}_ZERO3
 
 export WANDB_PROJECT=$task_name
 
 # zero-2 for process logps
 # zero-3 for training
 
-deepspeed ./muffin/train/train_llava15.py \
-    --deepspeed ./script/zero3.json  \
+deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/muffin/train/train_llava15.py \
+    --deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/script/zero3.json  \
     --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
     --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-HIER-Dataset_logps \
     --is_multimodal True \
@@ -23,24 +25,23 @@ deepspeed ./muffin/train/train_llava15.py \
     --fp16 True \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
-    --output_dir .ckpt/$task_name-$exp_name/checkpoints \
-    --max_steps 2000 \
-    --num_train_epochs 3 \
+    --output_dir /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/$task_name-$exp_name/checkpoints \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 1000 \
+    --save_steps 500000 \
     --save_total_limit 5 \
     --data_source_names '' \
     --data_source_weights 1 \
-    --learning_rate 5e-7 \
+    --learning_rate ${lr} \
     --weight_decay 0.01 \
     --warmup_ratio 0.05 \
     --lr_scheduler_type "cosine" \
     --logging_steps 5 \
-    --logging_dir .ckpt/$task_name-$exp_name/log \
+    --logging_dir /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/$task_name-$exp_name/log \
     --tf32 False \
     --model_max_length 2048 \
     --gradient_checkpointing True \

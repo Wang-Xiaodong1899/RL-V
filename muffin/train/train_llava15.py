@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append("/mnt/storage/user/wangxiaodong/RLAIF-V/")
 from llava.model import *
 import gc
 import torch
@@ -14,8 +15,8 @@ from dataclasses import dataclass, field
 from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
-from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer
-from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset
+from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer, LLaVA15EntailDPOTrainer
+from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset, EntailDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
 
@@ -160,7 +161,7 @@ class TrainingArguments(transformers.TrainingArguments):
             "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
         },
     )
-    # max_steps: int = field(default=1_000)
+    max_steps: int = field(default=1250) # 10k, bs8
     num_train_epochs: int = field(default=1)
     no_randaug: bool = False
 
@@ -238,6 +239,9 @@ class DPODataset(Dataset):
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         elif 'CSR' in data_dir:
             self.list_data_dict = CSRDataset(
+                data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif 'Entail' in data_dir:
+            self.list_data_dict = EntailDataset(
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         else:
             self.list_data_dict = RLHFVDataset(
@@ -504,6 +508,9 @@ def init_model(model_args, data_args, training_args, attn_implementation):
     elif training_args.task == 'DPO':
         data_module = make_dpo_data_module(
             tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
+    elif training_args.task == 'EntailDPO':
+        data_module = make_dpo_data_module(
+            tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
     elif training_args.task == 'KTO':
         data_module = make_kto_data_module(
             tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
@@ -556,6 +563,11 @@ def train(attn_implementation=None):
     elif training_args.task == 'DPO':
         # TODO
         trainer = LLaVA15DPOTrainer(model=model,
+                                    tokenizer=tokenizer,
+                                    args=training_args,
+                                    **data_module)
+    elif training_args.task == 'EntailDPO':
+        trainer = LLaVA15EntailDPOTrainer(model=model,
                                     tokenizer=tokenizer,
                                     args=training_args,
                                     **data_module)

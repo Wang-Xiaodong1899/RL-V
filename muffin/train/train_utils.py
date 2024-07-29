@@ -280,6 +280,10 @@ def encode_multimodal_preference_sample(source, tokenizer, multimodal_cfg, prepr
         win_data_dict['ref_win_avg_logp'] = source['ref_win_avg_logp']
         rej_data_dict['ref_rej_per_token_logp'] = source['ref_rej_per_token_logp']
         win_data_dict['ref_win_per_token_logp'] = source['ref_win_per_token_logp']
+    
+    if 'entail_score' in source:
+        rej_data_dict['entail_score'] = source['entail_score']
+        win_data_dict['entail_score'] = source['entail_score']
     return rej_data_dict, win_data_dict
 
 def preprocess_v1(

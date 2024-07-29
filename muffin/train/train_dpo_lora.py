@@ -183,6 +183,13 @@ class ScriptArguments:
             "https://github.com/huggingface/transformers/issues/22482#issuecomment-1595790992"
         },
     )
+    
+    task: str = field(
+        default='DPO',
+        metadata={
+            'help': 'DPO for direct preference optimization'
+        }
+    )
 
 def rank0_print(*args):
     if local_rank == 0:
@@ -505,6 +512,21 @@ class LazyCSRSupervisedDataset(Dataset):
 
     def data_preprocess(self, our_data, our_data_path):
         our_data_dict = []
+        # NOTE read entail score
+        import json
+        entail_score = []
+        jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/CSR/LLaVA_1.5_7b_2iteration_Entail_Fine.jsonl"
+        with open(jsonl_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                json_obj = json.loads(line.strip())
+                entail_score.append(json_obj["score"])
+        
+        print(f'entailment data length {len(entail_score)}')
+        
+        print(f'data length {len(our_data)}')
+        
+        assert len(entail_score) == len(our_data), f"Lengths are not equal: {len(entail_score)} != {len(our_data)}"
+        
         for idx in range(len(our_data)):
             image_id = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", our_data[idx]["image"].split('/')[-1])
             image = Image.open(image_id).convert("RGB")
@@ -513,7 +535,8 @@ class LazyCSRSupervisedDataset(Dataset):
                 "id": image_id,
                 "image": image,
                 "chosen_conversations": our_data[idx]["conversations"],
-                "reject_conversations": our_data[idx]["rejected_conversations"]
+                "reject_conversations": our_data[idx]["rejected_conversations"],
+                "score": entail_score[idx]
             })
         return our_data_dict
 
@@ -595,6 +618,9 @@ class LazyCSRSupervisedDataset(Dataset):
             # image does not exist in the data, but the model is multimodal
             crop_size = self.data_args.image_processor.crop_size
             data_dict['images'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+        # NOTE add entail score
+        if 'score' in self.list_data_dict[i]:
+            data_dict['score'] = self.list_data_dict[i]['score']
         return data_dict
 
 
@@ -640,6 +666,10 @@ class DataCollatorForSupervisedDataset(object):
                 batch['images'] = torch.stack(images)
             else:
                 batch['images'] = images
+        
+        if 'score' in instances[0]:
+            scores = [torch.tensor(instance['score']) for instance in instances]
+            batch['score'] = torch.stack(scores)
 
         return batch
 
@@ -1060,7 +1090,8 @@ def main():
         fp16=script_args.fp16,
         seed=script_args.seed,
     )
-
+    
+    training_args.task = script_args.task
     
     # initialize the DPO trainer
     dpo_trainer = LlavaDPOTrainer(

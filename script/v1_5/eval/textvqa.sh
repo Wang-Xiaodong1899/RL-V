@@ -2,7 +2,7 @@
 
 ckpt_dir=$1
 save_name=$2
-base_dir="./playground/data/eval/textvqa"
+base_dir="/mnt/storage/user/wangxiaodong/debug/LLaVA/playground/data/eval/textvqa"
 model_base=$3 # if need llava-v1.5-7b path
 
 echo "ckpt_dir: $ckpt_dir"

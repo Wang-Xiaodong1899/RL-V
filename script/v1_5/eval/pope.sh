@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ckpt_dir=$1 #/mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b
-base_dir=./playground/data/eval/pope
+base_dir=/mnt/storage/user/wangxiaodong/debug/LLaVA/playground/data/eval/pope
 save_name=$2 #llava-v1.5-7b
 model_base=$3 # if need llava-v1.5-7b path
 

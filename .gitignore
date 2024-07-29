@@ -23,6 +23,8 @@ LLaVA-NeXT-Video-7B
 roberta-large-wanli
 seva-7b-diffu500
 llava_POVID_stage_two_full
+POVID_stage1_merged
+POVID_stage2_merged
 
 # data
 **/*V-Dataset
@@ -44,6 +46,6 @@ COCO/*
 examples/*
 
 *.jsonl
-SeVa
+# SeVa
 hierarcaps
 POVID

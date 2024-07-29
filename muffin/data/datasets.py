@@ -52,6 +52,8 @@ class RLAIFVDataset(torch_data.Dataset):
         else:
             data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+            # NOTE default we only use 10k dataset
+            self.data = self.data.select(range(10000))
 
         self.line_idx = list(range(len(self.data)))
         random.shuffle(self.line_idx)
@@ -427,8 +429,8 @@ class POVIDDataset(torch_data.Dataset):
 
         if len(data_path) == 0:
             assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
-
-            import json
+            
+            # original data
             json_paths = [
                 "/mnt/storage/user/wangxiaodong/RLAIF-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
             ]
@@ -439,6 +441,7 @@ class POVIDDataset(torch_data.Dataset):
                     item['image_id'] = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", item['image'].split('/')[-1])
                 hf_data = hf_data + data
             
+            print(f'origin data length {len(hf_data)}')
             
             # "id", "rejected_conversations", "conversations", "image": ./data/xxx.jpg
             for item in hf_data:
@@ -461,6 +464,32 @@ class POVIDDataset(torch_data.Dataset):
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
+        
+        # entail data (include original data)
+        import json
+        entail_score = []
+        jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/POVID/POVID_preference_data_for_VLLMs_version_1_Entail_Fine_all_17184.jsonl"
+        with open(jsonl_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                json_obj = json.loads(line.strip())
+                entail_score.append(json_obj["score"])
+        
+        print(f'entailment data length {len(entail_score)}')
+        #  contract, entailment, other
+        self.entail_score = entail_score
+        
+        remove_idxs = []
+        for idx, s in enumerate(self.entail_score):
+            if s[0] > 0.9: # contra
+                remove_idxs.append(idx)
+        self.entail_score = [self.entail_score[i] for i in range(len(self.entail_score)) if i not in remove_idxs]
+        
+        filtered_dataset = self.data.filter(lambda example, idx: idx not in remove_idxs, with_indices=True)
+        self.data = filtered_dataset
+        
+        print(f'filter score: {len(self.entail_score)}')
+        print(f'filter data: {len(self.data)}')
+        # remaining: 10167
 
         self.line_idx = list(range(len(self.data)))
         random.shuffle(self.line_idx)
@@ -491,7 +520,8 @@ class POVIDDataset(torch_data.Dataset):
             "chosen": chosen,
             "rejected": rejected,
             "idx": sample.get('idx', ''),
-            "metainfo": metainfo
+            "metainfo": metainfo,
+            "entail_score": self.entail_score[self.line_idx[index]]
         }
         logps=json.loads(sample['logps'])
 
@@ -595,6 +625,94 @@ class CSRDataset(torch_data.Dataset):
 
         return data_dict
 
+
+class EntailDataset(torch_data.Dataset):
+    def __init__(self, data_dir: str, reference_model=None,
+                 tokenizer=None, image_token_len=None, img_processor=None, use_im_start_end=True, is_llava15=False):
+        super().__init__()
+
+        # predefined
+        data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset_logps"
+
+        if not op.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+
+        data_path = [file for file in os.listdir(data_dir) if file.endswith('.parquet') and 'logp' in file]
+        self.data_path = data_dir
+
+        if len(data_path) == 0:
+            assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
+
+            # if not op.exists('./RLAIF-V-Dataset'):
+            #     os.mkdir('./RLAIF-V-Dataset')
+            hf_data = hf_datasets.load_dataset("/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+
+            inference_logp(reference_model, tokenizer, hf_data, self.data_path,
+                            image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
+
+            torch.distributed.barrier()
+
+            self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+        else:
+            data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset_logps"
+            data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
+            self.data = data.select(range(10000)) # 10k dataset
+
+        # NOTE add entailment data
+        # jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Entail-0_10000.jsonl" # coarse
+        # hard code using the fine entailment data
+        jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Entail-fine-0_10000.jsonl" # fine
+        entail_score = []
+        with open(jsonl_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                json_obj = json.loads(line.strip())
+                entail_score.append(json_obj["score"])
+        
+        print(f'origin data length {len(self.data)}')
+        print(f'entailment data length {len(entail_score)}')
+        #  contract, entailment, other
+        self.entail_score = entail_score
+
+        self.line_idx = list(range(len(self.data)))
+        random.shuffle(self.line_idx)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        sample = self.data[self.line_idx[index]]
+        question = {'from': 'human', 'value': f"<image>\n{sample['question']}"}
+        chosen = {'from': 'gpt', 'value': sample['chosen']}
+        rejected = {'from': 'gpt', 'value': sample['rejected']}
+
+        image = bytes_to_PIL_image(sample['image']['bytes'])
+
+        metainfo = {
+            "origin_dataset": sample['origin_dataset'],
+            "origin_split": sample['origin_split'],
+            "origin_idx": sample['idx'],
+            "image_id": sample['image_path'],
+        }
+
+        data_dict = {
+            'image': image,
+            "question": question,
+            "chosen": chosen,
+            "rejected": rejected,
+            "idx": sample['idx'],
+            "metainfo": metainfo,
+            "entail_score": self.entail_score[self.line_idx[index]]
+        }
+        logps=json.loads(sample['logps'])
+
+        if type(logps) == type([]):
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps
+        else:
+            (data_dict['ref_win_logp'], data_dict['ref_win_avg_logp'], data_dict['ref_win_per_token_logp'],
+            data_dict['ref_rej_logp'], data_dict['ref_rej_avg_logp'], data_dict['ref_rej_per_token_logp']) = logps['logps']
+
+        return data_dict
 
 
 # code for Hound-DPO datasets

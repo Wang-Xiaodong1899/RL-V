@@ -1,0 +1,28 @@
+ckpt_dir: /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/llava15_7b_DPO-POVID-FT_pbs1_V8_1e-7_ZERO3/checkpoints/
+save_name: llava15_7b_DPO-POVID-FT_pbs1_V8_1e-7_ZERO3
+model_base: 
+Traceback (most recent call last):
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/eval/model_vqa_loader.py", line 169, in <module>
+    eval_model(args)
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/eval/model_vqa_loader.py", line 89, in eval_model
+    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_base=args.model_base, model_name=model_name, device_map={"": 'cuda'})
+  File "/mnt/storage/user/wangxiaodong/RLAIF-V/llava/model/builder.py", line 117, in load_pretrained_model
+    model = LlavaLlamaForCausalLM.from_pretrained(
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3850, in from_pretrained
+    ) = cls._load_pretrained_model(
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4128, in _load_pretrained_model
+    model.apply(model._initialize_weights)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 884, in apply
+    module.apply(fn)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 884, in apply
+    module.apply(fn)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 884, in apply
+    module.apply(fn)
+  [Previous line repeated 2 more times]
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 885, in apply
+    fn(self)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 1638, in _initialize_weights
+    self._init_weights(module)
+  File "/mnt/storage/user/wangxiaodong/.conda/envs/rlaifv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 860, in _init_weights
+    module.weight.data.normal_(mean=0.0, std=std)
+KeyboardInterrupt
