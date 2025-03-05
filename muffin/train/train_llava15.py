@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/mnt/storage/user/wangxiaodong/RLAIF-V/")
+sys.path.append("/home/user/wangxd/RL-V/")
 from llava.model import *
 import gc
 import torch

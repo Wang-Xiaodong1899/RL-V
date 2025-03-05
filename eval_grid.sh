@@ -11,4 +11,4 @@ model_name="${task_name}-${exp_name}"
 
 log_file="eval_${model_name}.log"
     
-bash /mnt/storage/user/wangxiaodong/RLAIF-V/script/v1_5/eval/pope.sh "/mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/${model_name}/checkpoints/" "$model_name" > "$log_file" 2>&1
+bash /home/user/wangxd/RL-V/script/v1_5/eval/pope.sh "/home/user/wangxd/RL-V/.ckpt/${model_name}/checkpoints/" "$model_name" > "$log_file" 2>&1

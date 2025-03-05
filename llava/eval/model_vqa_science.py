@@ -5,7 +5,7 @@ import json
 from tqdm import tqdm
 import shortuuid
 import sys
-sys.path.append('/mnt/storage/user/wangxiaodong/RLAIF-V/')
+sys.path.append('/home/user/wangxd/RL-V/')
 
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
@@ -103,7 +103,7 @@ def eval_model(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", type=str, default="/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-7B/")
+    parser.add_argument("--model-path", type=str, default="/home/user/wangxd/RL-V/RLAIF-V-7B/")
     parser.add_argument("--model-base", type=str, default=None)
     parser.add_argument("--image-folder", type=str, default="./playground/data/eval/scienceqa/images/test")
     parser.add_argument("--question-file", type=str, default="./playground/data/eval/scienceqa/llava_test_CQM-A.json")

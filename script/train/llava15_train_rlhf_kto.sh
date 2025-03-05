@@ -5,8 +5,8 @@ exp_name=llava15_rlhfv_KTO_pbs1_V8_step-4320_ZERO-3
 
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
-    --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
-    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/RLHF-V-Dataset_logps \
+    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
+    --data_dir /home/user/wangxd/RL-V/RLHF-V-Dataset_logps \
     --image_folder not_used \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --mm_use_im_start_end False \

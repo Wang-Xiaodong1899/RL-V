@@ -1,7 +1,7 @@
 MODEL_VERSION=RLAIFV-HIER-6k_r1024_a2048_pbs4_V8_1e-7
 
-OCR_DPO_DATA=/mnt/storage/user/wangxiaodong/RLAIF-V/seva_data/ocrvqa_dpo_8k_diffusion_step500.json
-TEXT_DPO_DATA=/mnt/storage/user/wangxiaodong/RLAIF-V/seva_data/textvqa_dpo_8k_filter_diffusion_step500.json
+OCR_DPO_DATA=/home/user/wangxd/RL-V/seva_data/ocrvqa_dpo_8k_diffusion_step500.json
+TEXT_DPO_DATA=/home/user/wangxd/RL-V/seva_data/textvqa_dpo_8k_filter_diffusion_step500.json
 
 
 project_name=LLaVA-LoRA
@@ -10,12 +10,12 @@ export WANDB_PROJECT=${project_name}
 deepspeed muffin/train/train_dpo_lora.py \
     --lora_enable True --lora_r 1024 --lora_alpha 2048 --mm_projector_lr 0 \
     --deepspeed ./script/zero3.json \
-    --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
+    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
     --version v1 \
     --ocr_data_path ${OCR_DPO_DATA} \
-    --ocr_image_path /mnt/storage/user/wangxiaodong/RLAIF-V/ocr-qa/ocr_vqa/images/ \
+    --ocr_image_path /home/user/wangxd/RL-V/ocr-qa/ocr_vqa/images/ \
     --textvqa_data_path ${TEXT_DPO_DATA} \
-    --textvqa_image_path /mnt/storage/user/wangxiaodong/RLAIF-V/playground/data/eval/textvqa/train_images/ \
+    --textvqa_image_path /home/user/wangxd/RL-V/playground/data/eval/textvqa/train_images/ \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \

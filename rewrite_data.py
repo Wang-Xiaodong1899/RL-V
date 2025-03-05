@@ -14,13 +14,13 @@ def modify_data(item, idx, anno):
     return item
 
 if __name__ == "__main__":
-    data_dir = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset"
+    data_dir = "/home/user/wangxd/RL-V/RLAIF-V-Dataset"
     data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
-    cache_file = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-HIERAR-Dataset-6k"
+    cache_file = "/home/user/wangxd/RL-V/RLAIF-V-HIERAR-Dataset-6k"
     os.makedirs(cache_file, exist_ok=True)
     
     data = data.select(range(6000))
-    input_file = "/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-HIERAR-0_10000.jsonl"
+    input_file = "/home/user/wangxd/RL-V/RLAIF-V-HIERAR-0_10000.jsonl"
     annot_data = []
     print(f"read jsonl from {input_file}")
     with open(input_file, 'r', encoding='utf-8') as infile:

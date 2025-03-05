@@ -21,7 +21,7 @@ def save_jsonl(save_path, data, append=False):
             json.dump(data, f)
             f.write("\n")
 
-videonames = os.listdir("/mnt/storage/user/wangxiaodong/RLAIF-V/data_process/dataset/train")
+videonames = os.listdir("/home/user/wangxd/RL-V/data_process/dataset/train")
 exsited_videos = []
 for videoname in videonames:
     if videoname.endswith(".mp4"):

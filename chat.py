@@ -194,12 +194,12 @@ class RLAIFVChat:
     def chat(self, input):
         return self.model.chat(input)
 
-def run(model_path="/mnt/storage/user/wangxiaodong/RLAIF-V/llava-RLAIF-V-7B"):
+def run(model_path="/data2/wangxd/models/llava-v1.5-7b"):
     print(f'test {model_path}')
     chat_model = RLAIFVChat(model_path=model_path)
-    image_path="./examples/test.jpeg"
+    image_path="/home/user/wangxd/RL-V/COCO_train2014_000000372250.jpg"
     # msgs = "First describe the image, and then tell me the proper action the car should do?"
-    msgs = "How many sheep in the image? The number is:"
+    msgs = "What are the living habits of the animals shown in the picture?"
     inputs = {"image": image_path, "question": msgs}
     answer = chat_model.chat(inputs)
     print(answer)

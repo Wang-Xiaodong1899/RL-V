@@ -49,3 +49,5 @@ examples/*
 # SeVa
 hierarcaps
 POVID
+*.log
+*.jpg

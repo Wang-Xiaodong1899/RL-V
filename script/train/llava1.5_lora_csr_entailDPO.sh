@@ -7,7 +7,7 @@ deepspeed muffin/train/train_dpo_lora.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
     --deepspeed ./script/zero3.json \
     --dataset_name CSR \
-    --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
+    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
     --version v1 \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_projector_type mlp2x_gelu \

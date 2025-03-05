@@ -69,7 +69,7 @@ if __name__ == "__main__":
     end_row = 16000
     num_rows = end_row - start_row
     filename = f"hieracaps_{start_row}_{end_row}.jsonl"
-    df = pd.read_csv("/mnt/storage/user/wangxiaodong/RLAIF-V/hierarcaps/hierarcaps_train.csv", skiprows=range(1, start_row+1), nrows=num_rows)
+    df = pd.read_csv("/home/user/wangxd/RL-V/hierarcaps/hierarcaps_train.csv", skiprows=range(1, start_row+1), nrows=num_rows)
     with open(filename, 'w', encoding='utf-8') as file:
         for idx, row in tqdm(df.iterrows()):
             pos_sentence = row["positive"]

@@ -10,8 +10,8 @@ export WANDB_PROJECT=$task_name
 
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
-    --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
-    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/HIERAR-Dataset-16k_logps \
+    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
+    --data_dir /home/user/wangxd/RL-V/HIERAR-Dataset-16k_logps \
     --is_multimodal False \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \

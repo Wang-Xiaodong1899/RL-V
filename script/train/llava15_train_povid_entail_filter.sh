@@ -10,10 +10,10 @@ export WANDB_PROJECT=$task_name
 # zero-2 for process logps
 # zero-3 for training
 
-deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/muffin/train/train_llava15.py \
-    --deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/script/zero3.json  \
-    --model_name_or_path /mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b \
-    --data_dir /mnt/storage/user/wangxiaodong/RLAIF-V/POVID-Dataset_logps \
+deepspeed /home/user/wangxd/RL-V/muffin/train/train_llava15.py \
+    --deepspeed /home/user/wangxd/RL-V/script/zero3.json  \
+    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
+    --data_dir /home/user/wangxd/RL-V/POVID-Dataset_logps \
     --is_multimodal True \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
@@ -25,7 +25,7 @@ deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/muffin/train/train_llava15.py \
     --fp16 True \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
-    --output_dir /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/$task_name-$exp_name/checkpoints \
+    --output_dir /home/user/wangxd/RL-V/.ckpt/$task_name-$exp_name/checkpoints \
     --num_train_epochs 1 \
     --max_steps 1270 \
     --per_device_train_batch_size 1 \
@@ -42,7 +42,7 @@ deepspeed /mnt/storage/user/wangxiaodong/RLAIF-V/muffin/train/train_llava15.py \
     --warmup_ratio 0.05 \
     --lr_scheduler_type "cosine" \
     --logging_steps 5 \
-    --logging_dir /mnt/storage/user/wangxiaodong/RLAIF-V/.ckpt/$task_name-$exp_name/log \
+    --logging_dir /home/user/wangxd/RL-V/.ckpt/$task_name-$exp_name/log \
     --tf32 False \
     --model_max_length 2048 \
     --gradient_checkpointing True \

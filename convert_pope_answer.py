@@ -3,7 +3,7 @@ import os
 import fire
 
 def main(dirs=""):
-    # dirs = "/mnt/storage/user/wangxiaodong/RLAIF-V/SeVa/seva/pope_result/mnt/storage/user/wangxiaodong/RLAIF-V/seva-7b-diffu500/"
+    # dirs = "/home/user/wangxd/RL-V/SeVa/seva/pope_result/home/user/wangxd/RL-V/seva-7b-diffu500/"
     files = ['adv', 'random', 'popular']
     all_data = []
     for file in files:

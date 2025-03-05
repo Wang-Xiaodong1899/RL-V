@@ -15,7 +15,7 @@ import torch
 from torch.utils.data import Dataset
 
 import sys
-sys.path.append("/mnt/storage/user/wangxiaodong/RLAIF-V/")
+sys.path.append("/home/user/wangxd/RL-V/")
 
 import transformers
 from transformers import TrainerCallback
@@ -368,7 +368,7 @@ class LazyVHIERSupervisedDataset(Dataset):
     ):
         super(LazyVHIERSupervisedDataset, self).__init__()
         
-        hf_data = hf_datasets.load_dataset("/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-HIERAR-Dataset-6k")['train'].cast_column("image", hf_datasets.Image(decode=False))
+        hf_data = hf_datasets.load_dataset("/home/user/wangxd/RL-V/RLAIF-V-HIERAR-Dataset-6k")['train'].cast_column("image", hf_datasets.Image(decode=False))
 
         our_data = self.data_preprocess(hf_data, "")  # pass blank root path
 
@@ -493,13 +493,13 @@ class LazyCSRSupervisedDataset(Dataset):
         
         import json
         json_paths = [
-            "/mnt/storage/user/wangxiaodong/RLAIF-V/CSR/LLaVA_1.5_7b_2iteration.json"
+            "/home/user/wangxd/RL-V/CSR/LLaVA_1.5_7b_2iteration.json"
         ]
         hf_data = []
         with open(json_paths[0], 'r') as f:
             data = json.load(f)
             for item in data:
-                item['image_id'] = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", item['image'].split('/')[-1])
+                item['image_id'] = os.path.join("/home/user/wangxd/RL-V/COCO/train2014/", item['image'].split('/')[-1])
             hf_data = hf_data + data
         our_data = self.data_preprocess(hf_data, "")  # pass blank root path
 
@@ -515,7 +515,7 @@ class LazyCSRSupervisedDataset(Dataset):
         # NOTE read entail score
         import json
         entail_score = []
-        jsonl_path = "/mnt/storage/user/wangxiaodong/RLAIF-V/CSR/LLaVA_1.5_7b_2iteration_Entail_Fine.jsonl"
+        jsonl_path = "/home/user/wangxd/RL-V/CSR/LLaVA_1.5_7b_2iteration_Entail_Fine.jsonl"
         with open(jsonl_path, 'r', encoding='utf-8') as file:
             for line in file:
                 json_obj = json.loads(line.strip())
@@ -528,7 +528,7 @@ class LazyCSRSupervisedDataset(Dataset):
         assert len(entail_score) == len(our_data), f"Lengths are not equal: {len(entail_score)} != {len(our_data)}"
         
         for idx in range(len(our_data)):
-            image_id = os.path.join("/mnt/storage/user/wangxiaodong/RLAIF-V/COCO/train2014/", our_data[idx]["image"].split('/')[-1])
+            image_id = os.path.join("/home/user/wangxd/RL-V/COCO/train2014/", our_data[idx]["image"].split('/')[-1])
             image = Image.open(image_id).convert("RGB")
             question = our_data[idx]["conversations"][0]["value"]  #question
             our_data_dict.append({

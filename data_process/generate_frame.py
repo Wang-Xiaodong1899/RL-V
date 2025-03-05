@@ -2,8 +2,8 @@ import os
 import subprocess
 from tqdm import tqdm
 
-video_folder = "/mnt/storage/user/wangxiaodong/RLAIF-V/data_process/dataset/train"
-output_folder = "/mnt/storage/user/wangxiaodong/RLAIF-V/data_process/dataset/frames"
+video_folder = "/home/user/wangxd/RL-V/data_process/dataset/train"
+output_folder = "/home/user/wangxd/RL-V/data_process/dataset/frames"
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)

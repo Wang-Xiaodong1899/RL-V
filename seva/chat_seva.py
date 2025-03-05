@@ -15,7 +15,7 @@ import os
 import json
 
 import sys
-sys.path.append("/mnt/storage/user/wangxiaodong/RLAIF-V/")
+sys.path.append("/home/user/wangxd/RL-V/")
 
 
 def main(args):
@@ -75,10 +75,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", type=str,
-                        default="/mnt/storage/user/wangxiaodong/RLAIF-V/seva-7b-diffu500")
+                        default="/home/user/wangxd/RL-V/seva-7b-diffu500")
     parser.add_argument("--model-base", type=str,
-                        default="/mnt/storage/user/wangxiaodong/RLAIF-V/llava-v1.5-7b")
-    parser.add_argument("--image-path", type=str, default="/mnt/storage/user/wangxiaodong/RLAIF-V/examples/test.jpeg")
+                        default="/data2/wangxd/models/llava-v1.5-7b")
+    parser.add_argument("--image-path", type=str, default="/home/user/wangxd/RL-V/examples/test.jpeg")
     parser.add_argument(
         "--qs", type=str, default="Describe this image briefly.")
     parser.add_argument("--conv-mode", type=str, default="llava_v1")

@@ -10,7 +10,7 @@ from tqdm import tqdm
 import numpy as np
 import fire
 
-model_path = '/mnt/storage/user/wangxiaodong/RLAIF-V/roberta-large-wanli'
+model_path = '/home/user/wangxd/RL-V/roberta-large-wanli'
 model = RobertaForSequenceClassification.from_pretrained(model_path)
 tokenizer = RobertaTokenizer.from_pretrained(model_path)
 
@@ -34,7 +34,7 @@ def predict(sentence1, sentence2):
 
 # predict(chosen, rejected)
 
-def process_data(mode='fine', num=10000, data_dir="/mnt/storage/user/wangxiaodong/RLAIF-V/RLAIF-V-Dataset"):
+def process_data(mode='fine', num=10000, data_dir="/home/user/wangxd/RL-V/RLAIF-V-Dataset"):
     data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
     
     start_row = 0
