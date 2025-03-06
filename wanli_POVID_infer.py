@@ -11,7 +11,7 @@ from tqdm import tqdm
 import numpy as np
 import fire
 
-model_path = '/workspace/wxd/RL-V/roberta-large-wanli'
+model_path = '/root/autodl-tmp/RL-V/roberta-large-wanli'
 model = RobertaForSequenceClassification.from_pretrained(model_path)
 tokenizer = RobertaTokenizer.from_pretrained(model_path)
 
@@ -38,13 +38,13 @@ def predict(sentence1, sentence2):
 def process_data(mode='fine'):
     import json
     json_paths = [
-        "/workspace/wxd/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
+        "/root/autodl-tmp/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
     ]
     hf_data = []
     with open(json_paths[0], 'r') as f:
         data = json.load(f)
         hf_data = hf_data + data
-    filename = "/workspace/wxd/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1_Entail_Fine_idx9867_2.jsonl"
+    filename = "/root/autodl-tmp/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1_Entail_Fine_idx9867_2.jsonl"
     
     with open(filename, 'w', encoding='utf-8') as file:
         for idx in tqdm(range(len(hf_data))[9867: ]):

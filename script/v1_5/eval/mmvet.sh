@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cktp_dir=$1 #/volsparse3/wxd/models/llava-v1.5-7b
+cktp_dir=$1 #/root/autodl-fs/llava-v1.5-7b
 base_dir=./playground/data/eval/mm-vet
 save_name=$2 #llava-v1.5-7b
 

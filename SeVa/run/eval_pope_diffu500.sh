@@ -1,8 +1,8 @@
 MODEL_VERSION=$1
 save_name=$2
-model_base=$3 # /volsparse3/wxd/models/llava-v1.5-7b
+model_base=$3 # /root/autodl-fs/llava-v1.5-7b
 
-# MODEL_VERSION=/workspace/wxd/RL-V/seva-7b-diffu500
+# MODEL_VERSION=/root/autodl-tmp/RL-V/seva-7b-diffu500
 
 if [ -z "$model_base" ]; then
     torchrun --nproc_per_node 8 --master_port 29501 seva/pope_eval.py \
@@ -56,7 +56,7 @@ else
 fi
 
 # convert
-python /workspace/wxd/RL-V/convert_pope_answer.py --dirs ./seva/pope_result/${save_name}
+python /root/autodl-tmp/RL-V/convert_pope_answer.py --dirs ./seva/pope_result/${save_name}
 
 cd /mnt/storage/user/wangxiaodong/debug/LLaVA
 
@@ -65,6 +65,6 @@ base_dir=./playground/data/eval/pope
 python llava/eval/eval_pope.py \
     --annotation-dir ${base_dir}/coco \
     --question-file ${base_dir}/llava_pope_test.jsonl \
-    --result-file /workspace/wxd/RL-V/SeVa/seva/pope_result/${save_name}/pope_all.jsonl
+    --result-file /root/autodl-tmp/RL-V/SeVa/seva/pope_result/${save_name}/pope_all.jsonl
 
 # python seva/pope_calculate.py --path ./seva/pope_result/${MODEL_VERSION}

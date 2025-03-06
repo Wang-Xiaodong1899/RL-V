@@ -21,7 +21,7 @@ def save_jsonl(save_path, data, append=False):
             json.dump(data, f)
             f.write("\n")
 
-videonames = os.listdir("/workspace/wxd/RL-V/data_process/dataset/train")
+videonames = os.listdir("/root/autodl-tmp/RL-V/data_process/dataset/train")
 exsited_videos = []
 for videoname in videonames:
     if videoname.endswith(".mp4"):

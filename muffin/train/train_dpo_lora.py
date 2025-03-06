@@ -15,7 +15,7 @@ import torch
 from torch.utils.data import Dataset
 
 import sys
-sys.path.append("/workspace/wxd/RL-V/")
+sys.path.append("/root/autodl-tmp/RL-V/")
 
 import transformers
 from transformers import TrainerCallback
@@ -368,7 +368,7 @@ class LazyVHIERSupervisedDataset(Dataset):
     ):
         super(LazyVHIERSupervisedDataset, self).__init__()
         
-        hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLAIF-V-HIERAR-Dataset-6k")['train'].cast_column("image", hf_datasets.Image(decode=False))
+        hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLAIF-V-HIERAR-Dataset-6k")['train'].cast_column("image", hf_datasets.Image(decode=False))
 
         our_data = self.data_preprocess(hf_data, "")  # pass blank root path
 
@@ -493,13 +493,13 @@ class LazyCSRSupervisedDataset(Dataset):
         
         import json
         json_paths = [
-            "/workspace/wxd/RL-V/CSR/LLaVA_1.5_7b_2iteration.json"
+            "/root/autodl-tmp/RL-V/CSR/LLaVA_1.5_7b_2iteration.json"
         ]
         hf_data = []
         with open(json_paths[0], 'r') as f:
             data = json.load(f)
             for item in data:
-                item['image_id'] = os.path.join("/workspace/wxd/RL-V/COCO/train2014/", item['image'].split('/')[-1])
+                item['image_id'] = os.path.join("/root/autodl-tmp/RL-V/COCO/train2014/", item['image'].split('/')[-1])
             hf_data = hf_data + data
         our_data = self.data_preprocess(hf_data, "")  # pass blank root path
 
@@ -515,7 +515,7 @@ class LazyCSRSupervisedDataset(Dataset):
         # NOTE read entail score
         import json
         entail_score = []
-        jsonl_path = "/workspace/wxd/RL-V/CSR/LLaVA_1.5_7b_2iteration_Entail_Fine.jsonl"
+        jsonl_path = "/root/autodl-tmp/RL-V/CSR/LLaVA_1.5_7b_2iteration_Entail_Fine.jsonl"
         with open(jsonl_path, 'r', encoding='utf-8') as file:
             for line in file:
                 json_obj = json.loads(line.strip())
@@ -528,7 +528,7 @@ class LazyCSRSupervisedDataset(Dataset):
         assert len(entail_score) == len(our_data), f"Lengths are not equal: {len(entail_score)} != {len(our_data)}"
         
         for idx in range(len(our_data)):
-            image_id = os.path.join("/workspace/wxd/RL-V/COCO/train2014/", our_data[idx]["image"].split('/')[-1])
+            image_id = os.path.join("/root/autodl-tmp/RL-V/COCO/train2014/", our_data[idx]["image"].split('/')[-1])
             image = Image.open(image_id).convert("RGB")
             question = our_data[idx]["conversations"][0]["value"]  #question
             our_data_dict.append({

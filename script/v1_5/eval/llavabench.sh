@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ckpt_dir=$1 #/volsparse3/wxd/models/llava-v1.5-7b
+ckpt_dir=$1 #/root/autodl-fs/llava-v1.5-7b
 base_dir=./playground/data/eval/llava-bench-in-the-wild
 save_name=$2 #llava-v1.5-7b
 model_base=$3 # if need llava-v1.5-7b path

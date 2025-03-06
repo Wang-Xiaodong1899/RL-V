@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/workspace/wxd/RL-V/")
+sys.path.append("/root/autodl-tmp/RL-V/")
 from llava.model import *
 import gc
 import torch

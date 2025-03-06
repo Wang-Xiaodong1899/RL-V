@@ -16,13 +16,13 @@ from omnilmm.train.train_utils import omni_preprocess
 from transformers import AutoTokenizer, AutoModel
 import fire
 
-# model_path = "/workspace/wxd/RL-V/RLAIF-V-7B"
+# model_path = "/root/autodl-tmp/RL-V/RLAIF-V-7B"
 # model_name='llava-v1.5-7b'
 # tokenizer, model, image_processor, context_len = load_pretrained_model(
 # model_path, model_base=None,model_name=model_name, device_map={"": 'cuda'})
 
 tokenizer = AutoTokenizer.from_pretrained(
-        "/volsparse3/wxd/models/llava-v1.5-7b",
+        "/root/autodl-fs/llava-v1.5-7b",
         cache_dir=None,
         model_max_length=512,
         padding_side="right",

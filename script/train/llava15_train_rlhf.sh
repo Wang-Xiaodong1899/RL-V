@@ -17,10 +17,10 @@ echo "Using $n_gpu GPUs: $gpu_ids"
 # zero-2 for process logps
 # zero-3 for training
 
-deepspeed --include=localhost:4,5,6,7 /workspace/wxd/RL-V/muffin/train/train_llava15.py \
-    --deepspeed /workspace/wxd/RL-V/script/zero2.json  \
-    --model_name_or_path /volsparse3/wxd/models/llava-v1.5-7b \
-    --data_dir /volsparse3/wxd/dataset/RLHF-Dataset_logps \
+deepspeed --include=localhost:4,5,6,7 /root/autodl-tmp/RL-V/muffin/train/train_llava15.py \
+    --deepspeed /root/autodl-tmp/RL-V/script/zero2.json  \
+    --model_name_or_path /root/autodl-fs/llava-v1.5-7b \
+    --data_dir /root/autodl-fs/RLHF-Dataset_logps \
     --is_multimodal True \
     --image_folder not_used \
     --vision_tower openai/clip-vit-large-patch14-336 \
@@ -31,7 +31,7 @@ deepspeed --include=localhost:4,5,6,7 /workspace/wxd/RL-V/muffin/train/train_lla
     --bf16 True \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
-    --output_dir /volsparse3/wxd/.ckpt/$task_name-$exp_name/checkpoints \
+    --output_dir /root/autodl-fs/.ckpt/$task_name-$exp_name/checkpoints \
     --num_train_epochs 1 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
@@ -47,7 +47,7 @@ deepspeed --include=localhost:4,5,6,7 /workspace/wxd/RL-V/muffin/train/train_lla
     --warmup_ratio 0.05 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
-    --logging_dir /volsparse3/wxd/.ckpt/$task_name-$exp_name/log \
+    --logging_dir /root/autodl-fs/.ckpt/$task_name-$exp_name/log \
     --tf32 True \
     --model_max_length 2048 \
     --gradient_checkpointing True \

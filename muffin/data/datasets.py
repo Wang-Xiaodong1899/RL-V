@@ -41,7 +41,7 @@ class RLAIFVDataset(torch_data.Dataset):
 
             # if not op.exists('./RLAIF-V-Dataset'):
             #     os.mkdir('./RLAIF-V-Dataset')
-            hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLAIF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLAIF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
 
             inference_logp(reference_model, tokenizer, hf_data, self.data_path,
                             image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
@@ -50,7 +50,7 @@ class RLAIFVDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            data_dir = "/workspace/wxd/RL-V/RLAIF-V-Dataset_logps"
+            data_dir = "/root/autodl-tmp/RL-V/RLAIF-V-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
             # NOTE default we only use 10k dataset
             self.data = self.data.select(range(10000))
@@ -113,7 +113,7 @@ class RLHFVDataset(torch_data.Dataset):
 
             # if not op.exists('./RLAIF-V-Dataset'):
             #     os.mkdir('./RLAIF-V-Dataset')
-            hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLHF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLHF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
 
             # print(type(hf_data))
 
@@ -124,7 +124,7 @@ class RLHFVDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            data_dir = "/workspace/wxd/RL-V/RLHF-V-Dataset_logps"
+            data_dir = "/root/autodl-tmp/RL-V/RLHF-V-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
 
         self.line_idx = list(range(len(self.data)))
@@ -185,7 +185,7 @@ class HIERARDataset(torch_data.Dataset):
         if len(data_path) == 0:
             assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
             import json
-            jsonl_path = "/workspace/wxd/RL-V/hieracaps_ds_16000.jsonl"
+            jsonl_path = "/root/autodl-tmp/RL-V/hieracaps_ds_16000.jsonl"
             hf_data = []
             with open(jsonl_path, 'r', encoding='utf-8') as file:
                 for line in file:
@@ -202,7 +202,7 @@ class HIERARDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train']
         else:
-            # data_dir = "/workspace/wxd/RL-V/HIERAR-Dataset-16k_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/HIERAR-Dataset-16k_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
 
         self.line_idx = list(range(len(self.data)))
@@ -270,7 +270,7 @@ class RLAIFVHIERDataset(torch_data.Dataset):
         if len(data_path) == 0:
             assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
 
-            hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLAIF-V-HIERAR-Dataset-10k")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLAIF-V-HIERAR-Dataset-10k")['train'].cast_column("image", hf_datasets.Image(decode=False))
             
             inference_logp(reference_model, tokenizer, hf_data, self.data_path,
                             image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
@@ -279,7 +279,7 @@ class RLAIFVHIERDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            # data_dir = "/workspace/wxd/RL-V/RLAIF-HIER-Dataset-10k_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/RLAIF-HIER-Dataset-10k_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
 
         self.line_idx = list(range(len(self.data)))
@@ -338,20 +338,20 @@ class SEVADataset(torch_data.Dataset):
 
             import json
             json_paths = [
-                "/workspace/wxd/RL-V/seva_data/ocrvqa_dpo_8k_diffusion_step500.json",
-                "/workspace/wxd/RL-V/seva_data/textvqa_dpo_8k_filter_diffusion_step500.json"
+                "/root/autodl-tmp/RL-V/seva_data/ocrvqa_dpo_8k_diffusion_step500.json",
+                "/root/autodl-tmp/RL-V/seva_data/textvqa_dpo_8k_filter_diffusion_step500.json"
             ]
             hf_data = []
             with open(json_paths[0], 'r') as f:
                 data = json.load(f)
                 for item in data:
-                    item['image_id'] = os.path.join("/workspace/wxd/RL-V/ocr-qa/ocr_vqa/images/", item['image_id'])
+                    item['image_id'] = os.path.join("/root/autodl-tmp/RL-V/ocr-qa/ocr_vqa/images/", item['image_id'])
                 hf_data = hf_data + data
             
             with open(json_paths[1], 'r') as f:
                 data = json.load(f)
                 for item in data:
-                    item['image_id'] = os.path.join("/workspace/wxd/RL-V/playground/data/eval/textvqa/train_images/", item['image_id'])
+                    item['image_id'] = os.path.join("/root/autodl-tmp/RL-V/playground/data/eval/textvqa/train_images/", item['image_id'])
                 hf_data = hf_data + data
             # "chosen", "reject", "question", "image_id": xxx.jpg
             for item in hf_data:
@@ -368,7 +368,7 @@ class SEVADataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            # data_dir = "/workspace/wxd/RL-V/SEVA-Dataset_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/SEVA-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
@@ -432,13 +432,13 @@ class POVIDDataset(torch_data.Dataset):
             
             # original data
             json_paths = [
-                "/workspace/wxd/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
+                "/root/autodl-tmp/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1.json"
             ]
             hf_data = []
             with open(json_paths[0], 'r') as f:
                 data = json.load(f)
                 for item in data:
-                    item['image_id'] = os.path.join("/workspace/wxd/RL-V/COCO/train2014/", item['image'].split('/')[-1])
+                    item['image_id'] = os.path.join("/root/autodl-tmp/RL-V/COCO/train2014/", item['image'].split('/')[-1])
                 hf_data = hf_data + data
             
             print(f'origin data length {len(hf_data)}')
@@ -460,7 +460,7 @@ class POVIDDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            # data_dir = "/workspace/wxd/RL-V/POVID-Dataset_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/POVID-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
@@ -468,7 +468,7 @@ class POVIDDataset(torch_data.Dataset):
         # entail data (include original data)
         import json
         entail_score = []
-        jsonl_path = "/workspace/wxd/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1_Entail_Fine_all_17184.jsonl"
+        jsonl_path = "/root/autodl-tmp/RL-V/POVID/POVID_preference_data_for_VLLMs_version_1_Entail_Fine_all_17184.jsonl"
         with open(jsonl_path, 'r', encoding='utf-8') as file:
             for line in file:
                 json_obj = json.loads(line.strip())
@@ -551,13 +551,13 @@ class CSRDataset(torch_data.Dataset):
 
             import json
             json_paths = [
-                "/workspace/wxd/RL-V/CSR/LLaVA_1.5_7b_2iteration.json"
+                "/root/autodl-tmp/RL-V/CSR/LLaVA_1.5_7b_2iteration.json"
             ]
             hf_data = []
             with open(json_paths[0], 'r') as f:
                 data = json.load(f)
                 for item in data:
-                    item['image_id'] = os.path.join("/workspace/wxd/RL-V/COCO/train2014/", item['image'].split('/')[-1])
+                    item['image_id'] = os.path.join("/root/autodl-tmp/RL-V/COCO/train2014/", item['image'].split('/')[-1])
                 hf_data = hf_data + data
             
             
@@ -578,7 +578,7 @@ class CSRDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            # data_dir = "/workspace/wxd/RL-V/CSR-Dataset_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/CSR-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
@@ -641,7 +641,7 @@ class RLHFDataset(torch_data.Dataset):
             assert reference_model is not None, "`reference_model` is mandatory when logps do not exist."
             
             hf_data = []
-            jsonl_path = "/volsparse3/wxd/dataset/llava_rlhf_merge-for_leanpo-1w.jsonl"
+            jsonl_path = "/root/autodl-fs/llava_rlhf_merge-for_leanpo-1w.jsonl"
             with open(jsonl_path, 'r', encoding='utf-8') as file:
                 for line in file:
                     json_obj = json.loads(line.strip())
@@ -651,7 +651,7 @@ class RLHFDataset(torch_data.Dataset):
             # "id", "chsosen", "rejected", "answer", "prompt", "image": xxx.jpg
             for item in hf_data:
                 item["ds_name"] = "RLHF"
-                item["image_id"] = os.path.join("/data/mscoco/train2014/", "COCO_train2014_" + item["image"])
+                item["image_id"] = os.path.join("/root/autodl-tmp/train2014/", "COCO_train2014_" + item["image"])
                 item["image"] = item["image_id"]
                 item["question"] = item["prompt"].replace("<image>", "").strip()
                 item["chosen"] = item["chosen"]
@@ -666,7 +666,7 @@ class RLHFDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            # data_dir = "/workspace/wxd/RL-V/CSR-Dataset_logps"
+            # data_dir = "/root/autodl-tmp/RL-V/CSR-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train']
             print(f"column names: {self.data.column_names}")
             self.data = self.data.cast_column("image", hf_datasets.Image(decode=False))
@@ -720,7 +720,7 @@ class EntailDataset(torch_data.Dataset):
         super().__init__()
 
         # predefined
-        data_dir = "/workspace/wxd/RL-V/RLAIF-V-Dataset_logps"
+        data_dir = "/root/autodl-tmp/RL-V/RLAIF-V-Dataset_logps"
 
         if not op.exists(data_dir):
             os.makedirs(data_dir, exist_ok=True)
@@ -733,7 +733,7 @@ class EntailDataset(torch_data.Dataset):
 
             # if not op.exists('./RLAIF-V-Dataset'):
             #     os.mkdir('./RLAIF-V-Dataset')
-            hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLAIF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLAIF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
 
             inference_logp(reference_model, tokenizer, hf_data, self.data_path,
                             image_token_len, img_processor, use_im_start_end, is_llava15=is_llava15)
@@ -742,14 +742,14 @@ class EntailDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            data_dir = "/workspace/wxd/RL-V/RLAIF-V-Dataset_logps"
+            data_dir = "/root/autodl-tmp/RL-V/RLAIF-V-Dataset_logps"
             data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
             self.data = data.select(range(10000)) # 10k dataset
 
         # NOTE add entailment data
-        # jsonl_path = "/workspace/wxd/RL-V/RLAIF-V-Entail-0_10000.jsonl" # coarse
+        # jsonl_path = "/root/autodl-tmp/RL-V/RLAIF-V-Entail-0_10000.jsonl" # coarse
         # hard code using the fine entailment data
-        jsonl_path = "/workspace/wxd/RL-V/RLAIF-V-Entail-fine-0_10000.jsonl" # fine
+        jsonl_path = "/root/autodl-tmp/RL-V/RLAIF-V-Entail-fine-0_10000.jsonl" # fine
         entail_score = []
         with open(jsonl_path, 'r', encoding='utf-8') as file:
             for line in file:
@@ -837,7 +837,7 @@ class HoundDataset(torch_data.Dataset):
 
             # if not op.exists('./RLAIF-V-Dataset'):
             #     os.mkdir('./RLAIF-V-Dataset')
-            # hf_data = hf_datasets.load_dataset("/workspace/wxd/RL-V/RLHF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
+            # hf_data = hf_datasets.load_dataset("/root/autodl-tmp/RL-V/RLHF-V-Dataset")['train'].cast_column("image", hf_datasets.Image(decode=False))
             # TODO need load from local video
             
             hf_data = []
@@ -849,7 +849,7 @@ class HoundDataset(torch_data.Dataset):
 
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
         else:
-            data_dir = "/workspace/wxd/RL-V/RLHF-V-Dataset_logps"
+            data_dir = "/root/autodl-tmp/RL-V/RLHF-V-Dataset_logps"
             self.data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
 
         self.line_idx = list(range(len(self.data)))

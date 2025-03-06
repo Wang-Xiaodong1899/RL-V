@@ -4,7 +4,7 @@ import json
 import re
 
 import sys
-sys.path.append('/workspace/wxd/RL-V/')
+sys.path.append('/root/autodl-tmp/RL-V/')
 
 from llava.eval.m4c_evaluator import TextVQAAccuracyEvaluator
 

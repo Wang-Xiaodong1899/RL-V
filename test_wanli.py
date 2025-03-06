@@ -2,7 +2,7 @@ import gradio as gr
 import torch
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 
-model_path = '/workspace/wxd/RL-V/roberta-large-wanli'
+model_path = '/root/autodl-tmp/RL-V/roberta-large-wanli'
 model = RobertaForSequenceClassification.from_pretrained(model_path)
 tokenizer = RobertaTokenizer.from_pretrained(model_path)
 
