@@ -27,4 +27,4 @@ def merge_jsonl(file1_path, file2_path, output_path):
             f.write(json.dumps(line) + '\n')
 
 # 示例使用
-merge_jsonl('/home/user/wangxd/RL-V/LLaVA-rlhf-debate/llava_rlhf_for_leanpo-1w.jsonl', '/home/user/wangxd/RL-V/LLaVA-rlhf-aug/llava_rlhf_aug-1w.jsonl', './llava_rlhf_merge-for_leanpo-1w.jsonl')
+merge_jsonl('/workspace/wxd/RL-V/LLaVA-rlhf-debate/llava_rlhf_for_leanpo-1w.jsonl', '/workspace/wxd/RL-V/LLaVA-rlhf-aug/llava_rlhf_aug-1w.jsonl', './llava_rlhf_merge-for_leanpo-1w.jsonl')

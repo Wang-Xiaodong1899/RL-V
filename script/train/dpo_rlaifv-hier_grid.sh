@@ -10,9 +10,9 @@ for lr in "${lr_values[@]}"
 do
     model_name="${task_name}-${exp_name}"
     
-    bash /home/user/wangxd/RL-V/script/train/llava15_train_rlaif_hier.sh "$lr"
+    bash /workspace/wxd/RL-V/script/train/llava15_train_rlaif_hier.sh "$lr"
 
     log_file="eval_${model_name}.log"
     
-    bash /home/user/wangxd/RL-V/script/v1_5/eval/pope.sh "/home/user/wangxd/RL-V/.ckpt/${model_name}" "$model_name" > "$log_file" 2>&1
+    bash /workspace/wxd/RL-V/script/v1_5/eval/pope.sh "/workspace/wxd/RL-V/.ckpt/${model_name}" "$model_name" > "$log_file" 2>&1
 done

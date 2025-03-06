@@ -74,7 +74,7 @@ def warp_long_sentence(query, answer):
 # print(result)
 
 if __name__ == "__main__":
-    data_dir = "/home/user/wangxd/RL-V/RLAIF-V-Dataset"
+    data_dir = "/workspace/wxd/RL-V/RLAIF-V-Dataset"
     data = hf_datasets.load_dataset(data_dir)['train'].cast_column("image", hf_datasets.Image(decode=False))
     
     start_row = 0

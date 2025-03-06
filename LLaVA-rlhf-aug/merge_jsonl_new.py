@@ -15,7 +15,7 @@ def merge_jsonl_files(file_list, output_file):
                     
                     outfile.write(line)
 
-root = "/home/user/wangxd/RL-V/LLaVA-rlhf-aug"
+root = "/workspace/wxd/RL-V/LLaVA-rlhf-aug"
 
 file_list = ['llava_rlhf_for_leanpo_0_2500.jsonl', 'llava_rlhf_for_leanpo_2500_5000.jsonl', 'llava_rlhf_for_leanpo_5000_7500.jsonl', 'llava_rlhf_for_leanpo_7500_10000.jsonl']
 

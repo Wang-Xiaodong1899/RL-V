@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/home/user/wangxd/RL-V/")
+sys.path.append("/workspace/wxd/RL-V/")
 from llava.model import *
 import gc
 import torch

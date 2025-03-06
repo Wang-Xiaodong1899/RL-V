@@ -129,7 +129,7 @@ class RLAIFVChat:
         return self.model.chat(input)
 
 # initial chat_model
-chat_model = RLAIFVChat(model_path="/data2/wangxd/models/llava-v1.5-7b")
+chat_model = RLAIFVChat(model_path="/volsparse3/wxd/models/llava-v1.5-7b")
 
 def inference_pipeline(start=0, end=10000):
     # ************* read dataset *************
@@ -142,7 +142,7 @@ def inference_pipeline(start=0, end=10000):
     new_samples = []
     
     
-    with open(f'/home/user/wangxd/RL-V/LLaVA-rlhf-aug/llava_rlhf_for_leanpo_{start}_{end}.jsonl', 'w', encoding='utf-8') as f:
+    with open(f'/workspace/wxd/RL-V/LLaVA-rlhf-aug/llava_rlhf_for_leanpo_{start}_{end}.jsonl', 'w', encoding='utf-8') as f:
         for idx, sample in tqdm(enumerate(llava_rlhf_data[start: end])):
             model_return = None
             for turn in range(1):

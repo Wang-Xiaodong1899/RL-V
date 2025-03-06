@@ -75,7 +75,7 @@ class DataDownloader:
         print("[INFO] Loading data list ... ",end='')
         # self.dataroot = dataroot
         # self.list_seqnames = sorted(glob.glob(dataroot + '/*.txt'))
-        self.output_root = '/home/user/wangxd/RL-V/data_process/dataset/' + mode + '/'
+        self.output_root = '/workspace/wxd/RL-V/data_process/dataset/' + mode + '/'
         self.mode =  mode
         
         all_data = []
@@ -121,7 +121,7 @@ class DataDownloader:
         print("[INFO] Start downloading {} movies".format(len(self.list_data)))
         
         # read local video
-        videonames = os.listdir("/home/user/wangxd/RL-V/data_process/dataset/train")
+        videonames = os.listdir("/workspace/wxd/RL-V/data_process/dataset/train")
         exsited_videos = []
         for videoname in videonames:
             if videoname.endswith(".mp4"):

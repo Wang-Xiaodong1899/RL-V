@@ -2,7 +2,7 @@ export PYTHONPATH=$PYTHONPATH:`realpath .`
 
 lr=${1:-"5e-7"}
 
-task_name=llava15_7b_LeanPO_RLHF
+task_name=jf_llava15_7b_LeanPO_RLHF
 exp_name=llava15_LeanPO_RLHF_${lr}_ZERO3
 
 export WANDB_PROJECT=$task_name
@@ -19,10 +19,10 @@ echo "Using $n_gpu GPUs: $gpu_ids"
 
 export SFT_weight=0.5
 
-deepspeed --include=localhost:4,5,6,7 /home/user/wangxd/RL-V/muffin/train/train_llava15.py \
-    --deepspeed /home/user/wangxd/RL-V/script/zero2.json  \
-    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
-    --data_dir /data2/wangxd/dataset/RLHF-Dataset_logps \
+deepspeed --include=localhost:4,5,6,7 /workspace/wxd/RL-V/muffin/train/train_llava15.py \
+    --deepspeed /workspace/wxd/RL-V/script/zero2.json  \
+    --model_name_or_path /volsparse3/wxd/models/llava-v1.5-7b \
+    --data_dir /volsparse3/wxd/dataset/RLHF-Dataset_logps \
     --is_multimodal True \
     --image_folder not_used \
     --vision_tower openai/clip-vit-large-patch14-336 \
@@ -33,7 +33,7 @@ deepspeed --include=localhost:4,5,6,7 /home/user/wangxd/RL-V/muffin/train/train_
     --bf16 True \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
-    --output_dir /data2/wangxd/.ckpt/$task_name-$exp_name/checkpoints \
+    --output_dir /volsparse3/wxd/.ckpt/$task_name-$exp_name/checkpoints \
     --num_train_epochs 1 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
@@ -49,7 +49,7 @@ deepspeed --include=localhost:4,5,6,7 /home/user/wangxd/RL-V/muffin/train/train_
     --warmup_ratio 0.05 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
-    --logging_dir /data2/wangxd/.ckpt/$task_name-$exp_name/log \
+    --logging_dir /volsparse3/wxd/.ckpt/$task_name-$exp_name/log \
     --tf32 True \
     --model_max_length 2048 \
     --gradient_checkpointing True \

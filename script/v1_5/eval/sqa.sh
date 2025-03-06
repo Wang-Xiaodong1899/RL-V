@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ckpt_dir=$1 #/data2/wangxd/models/llava-v1.5-7b
+ckpt_dir=$1 #/volsparse3/wxd/models/llava-v1.5-7b
 save_name=$2 #llava-v1.5-7b
 model_base=$3 # if need llava-v1.5-7b path
 

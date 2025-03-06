@@ -13,7 +13,7 @@ echo $CHUNKS
 
 
 SPLIT="llava_vqav2_mscoco_test-dev2015"
-ckpt_dir=$1 #/data2/wangxd/models/llava-v1.5-7b
+ckpt_dir=$1 #/volsparse3/wxd/models/llava-v1.5-7b
 CKPT=$2 #"llava-v1.5-13b"
 
 base_dir=./playground/data/eval/vqav2

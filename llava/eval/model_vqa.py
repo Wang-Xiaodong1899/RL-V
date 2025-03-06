@@ -5,7 +5,7 @@ import json
 from tqdm import tqdm
 import shortuuid
 import sys
-sys.path.append('/home/user/wangxd/RL-V/')
+sys.path.append('/workspace/wxd/RL-V/')
 
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle

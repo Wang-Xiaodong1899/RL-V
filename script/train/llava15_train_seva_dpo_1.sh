@@ -11,8 +11,8 @@ export WANDB_PROJECT=$task_name
 
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
-    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
-    --data_dir /home/user/wangxd/RL-V/SEVA-Dataset_logps \
+    --model_name_or_path /volsparse3/wxd/models/llava-v1.5-7b \
+    --data_dir /workspace/wxd/RL-V/SEVA-Dataset_logps \
     --is_multimodal True \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \

@@ -3,7 +3,7 @@ import argparse
 import json
 
 import sys
-sys.path.append("/home/user/wangxd/RL-V/")
+sys.path.append("/workspace/wxd/RL-V/")
 
 from llava.eval.m4c_evaluator import EvalAIAnswerProcessor
 

@@ -20,7 +20,7 @@ tokenizer, model, image_processor, max_length = load_pretrained_model(pretrained
 model.eval()
 model.tie_weights()
 
-url = "/home/user/wangxd/RL-V/examples/test.jpeg"
+url = "/workspace/wxd/RL-V/examples/test.jpeg"
 image = Image.open(url)
 image_tensor = process_images([image], image_processor, model.config)
 image_tensor = [_image.to(dtype=torch.float16, device=device) for _image in image_tensor]

@@ -250,12 +250,12 @@ if step by step evaluation
 python muffin/eval/muffin_vqa.py --temperature 0
 python ./eval/change_mmhal_predict_template.py \
     --response-template ./eval/data/mmhal-bench_answer_template.json \
-    --answers-file /home/user/wangxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl \
-    --save-file /home/user/wangxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.template.json
+    --answers-file /workspace/wxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl \
+    --save-file /workspace/wxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.template.json
 python ./eval/eval_gpt_mmhal.py \
-    --response /home/user/wangxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.template.json \
-    --evaluation /home/user/wangxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.mmhal_test_eval.json \
-    --api-key "" >> /home/user/wangxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.eval_log.txt
+    --response /workspace/wxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.template.json \
+    --evaluation /workspace/wxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.mmhal_test_eval.json \
+    --api-key "" >> /workspace/wxd/RL-V/results/RLAIF-V-7B/mmhal-bench_answer.jsonl.eval_log.txt
 ```
 
 

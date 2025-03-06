@@ -24,7 +24,7 @@ log_file="eval_${save_name}.log"
 
 
 # SeVa POPE
-cd /home/user/wangxd/RL-V/SeVa
+cd /workspace/wxd/RL-V/SeVa
 
 if [ -z "$model_base" ]; then
     bash run/eval_pope_diffu500.sh "${ckpt}" "$save_name" > "/mnt/storage/user/wangxiaodong/debug/LLaVA/pope_1_$log_file" 2>&1

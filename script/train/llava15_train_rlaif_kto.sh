@@ -5,8 +5,8 @@ exp_name=llava15_rlaifv_pbs1_V8_step-20k-ZERO-3-run1
 
 deepspeed ./muffin/train/train_llava15.py \
     --deepspeed ./script/zero3.json  \
-    --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
-    --data_dir /home/user/wangxd/RL-V/RLAIF-V-Dataset_logps/ \
+    --model_name_or_path /volsparse3/wxd/models/llava-v1.5-7b \
+    --data_dir /workspace/wxd/RL-V/RLAIF-V-Dataset_logps/ \
     --image_folder not_used \
     --vision_tower /mnt/storage/user/wangxiaodong/.cache/huggingface/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1/ \
     --mm_use_im_start_end False \
