@@ -19,7 +19,7 @@ echo "Using $n_gpu GPUs: $gpu_ids"
 
 export SFT_weight=0.5
 
-deepspeed --include=localhost:4,5,6,7 /workspace/wxd/RL-V/muffin/train/train_llava15.py \
+deepspeed --include=localhost:0,1,2,3 /workspace/wxd/RL-V/muffin/train/train_llava15.py \
     --deepspeed /workspace/wxd/RL-V/script/zero2.json  \
     --model_name_or_path /volsparse3/wxd/models/llava-v1.5-7b \
     --data_dir /volsparse3/wxd/dataset/RLHF-Dataset_logps \
