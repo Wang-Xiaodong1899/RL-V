@@ -16,7 +16,7 @@ from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
 from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer, LLaVA15EntailDPOTrainer
-from muffin.data.datasets import SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset, EntailDataset
+from muffin.data.datasets import RLHFDataset, SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset, EntailDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
 
@@ -242,6 +242,9 @@ class DPODataset(Dataset):
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         elif 'Entail' in data_dir:
             self.list_data_dict = EntailDataset(
+                data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
+        elif "RLHF-Dataset" in data_dir:
+            self.list_data_dict = RLHFDataset(
                 data_dir, reference_model, tokenizer, multimodal_cfg['image_token_len'], multimodal_cfg['image_processor'], multimodal_cfg['use_im_start_end'], is_llava15=True)
         else:
             self.list_data_dict = RLHFVDataset(
