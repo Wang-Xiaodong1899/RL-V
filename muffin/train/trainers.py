@@ -149,6 +149,45 @@ def dpo_loss(policy_chosen_logps: torch.FloatTensor,
 
     return losses, chosen_rewards, rejected_rewards
 
+def simpo_loss(policy_chosen_logps: torch.FloatTensor,
+             policy_rejected_logps: torch.FloatTensor,
+             reference_chosen_logps: torch.FloatTensor,
+             reference_rejected_logps: torch.FloatTensor,
+             beta: float,
+             reference_free: bool = True) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+    """Compute the SimPO loss for a batch of policy and reference model log probabilities.
+
+    Args:
+        policy_chosen_logps: Log probabilities of the policy model for the chosen responses. Shape: (batch_size,)
+        policy_rejected_logps: Log probabilities of the policy model for the rejected responses. Shape: (batch_size,)
+        reference_chosen_logps: Log probabilities of the reference model for the chosen responses. Shape: (batch_size,)
+        reference_rejected_logps: Log probabilities of the reference model for the rejected responses. Shape: (batch_size,)
+        beta: Temperature parameter for the DPO loss, typically something in the range of 0.1 to 0.5. We ignore the reference model as beta -> 0.
+        reference_free: If True, we ignore the _provided_ reference model and implicitly use a reference model that assigns equal probability to all responses.
+
+    Returns:
+        A tuple of three tensors: (losses, chosen_rewards, rejected_rewards).
+        The losses tensor contains the DPO loss for each example in the batch.
+        The chosen_rewards and rejected_rewards tensors contain the rewards for the chosen and rejected responses, respectively.
+    """
+    pi_logratios = policy_chosen_logps - policy_rejected_logps
+    ref_logratios = reference_chosen_logps - reference_rejected_logps
+
+    if reference_free:
+        ref_logratios = 0
+
+    logits = pi_logratios - ref_logratios
+    
+    constant_gamma = 0.5
+
+    losses = -F.logsigmoid(beta * logits - constant_gamma)
+    chosen_rewards = beta * (policy_chosen_logps -
+                             reference_chosen_logps).detach()
+    rejected_rewards = beta * \
+        (policy_rejected_logps - reference_rejected_logps).detach()
+
+    return losses, chosen_rewards, rejected_rewards
+
 def entail_dpo_loss(policy_chosen_logps: torch.FloatTensor,
              policy_rejected_logps: torch.FloatTensor,
              reference_chosen_logps: torch.FloatTensor,
@@ -318,20 +357,7 @@ def get_beta_and_logps(data_dict, model, args, is_minicpm=False, is_llava15=Fals
         ref_rej_logp = ref_rej_avg_logp
 
     beta = data_dict.pop('beta')
-    if 'DPO' in args.task:
-        images = data_dict.pop('images', None)
-        if is_minicpm:
-            # print(data_dict.keys())
-            data_dict.pop('win_context_ids')
-            data_dict.pop('rej_context_ids')
-            concatenated_images = images
-        else:
-            if images is None or len(images) == 0:
-                concatenated_images = None
-            else:
-                concatenated_images = torch.cat([images, images], dim=0)
-                
-    elif args.task == 'KTO':
+    if 'SimPO' in args.task:
         images = data_dict.pop('images', None)
         if is_minicpm:
             # print(data_dict.keys())
@@ -604,6 +630,40 @@ class LLaVA15DPOTrainer(ZephyrTrainer):
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
         SFT_weight = float(os.environ.get('SFT_weight', 0.0))
+        DPO_weight = float(os.environ.get('DPO_weight', 1.0))
+        loss = DPO_weight * losses.mean() - SFT_weight * policy_win_logp.mean()
+
+        t = 'train' if model.training else 'test'
+        metrics = {}
+        metrics = collect_preference_metrics(metrics, t, chosen_rewards, rejected_rewards,
+                                             policy_rej_logp, policy_win_logp,
+                                             ref_rej_logp, ref_win_logp, reward_accuracies,
+                                             gather_and_do_mean)
+        self.log(metrics)
+
+        return loss
+
+class LLaVA15SimPOTrainer(ZephyrTrainer):
+
+    def compute_loss(self, model: Module, inputs: dict, return_outputs=False):
+        if self.args.past_index >= 0:
+            raise NotImplementedError
+
+        def gather_and_do_mean(x):
+            return self._nested_gather(x.mean()).mean().item()
+
+        data_dict = inputs
+        policy_win_logp, policy_rej_logp, ref_win_logp, ref_rej_logp, beta = get_beta_and_logps(
+            data_dict, model, self.args, is_llava15=True)
+
+        losses, chosen_rewards, rejected_rewards = simpo_loss(policy_win_logp,
+                                                            policy_rej_logp,
+                                                            ref_win_logp,
+                                                            ref_rej_logp,
+                                                            beta=beta)
+        reward_accuracies = (chosen_rewards > rejected_rewards).float()
+
+        SFT_weight = float(os.environ.get('SFT_weight', 0.5))
         DPO_weight = float(os.environ.get('DPO_weight', 1.0))
         loss = DPO_weight * losses.mean() - SFT_weight * policy_win_logp.mean()
 

@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from torch.utils.data import Dataset
 
 from utils.utils import is_main_process, get_rank
-from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer, LLaVA15EntailDPOTrainer
+from muffin.train.trainers import LLaVA15DPOTrainer, LLaVA15KTOTrainer, LLaVA15EntailDPOTrainer, LLaVA15SimPOTrainer
 from muffin.data.datasets import RLHFDataset, SingleDataSourceDataset, MultiDataSourceDataset, RLAIFVDataset, RLHFVDataset, HIERARDataset, RLAIFVHIERDataset, SEVADataset, POVIDDataset, CSRDataset, EntailDataset
 from muffin.data.data_processors import register_data_path
 from muffin.train.train_utils import encode_multimodal_preference_sample, preprocess_v1
@@ -511,6 +511,9 @@ def init_model(model_args, data_args, training_args, attn_implementation):
     elif training_args.task == 'DPO':
         data_module = make_dpo_data_module(
             tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
+    elif training_args.task == 'SimPO':
+        data_module = make_dpo_data_module(
+            tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
     elif training_args.task == 'EntailDPO':
         data_module = make_dpo_data_module(
             tokenizer, data_args=data_args, reference_model=copy.deepcopy(model).cuda())
@@ -577,6 +580,11 @@ def train(attn_implementation=None):
     elif training_args.task == 'KTO':
         # TODO
         trainer = LLaVA15KTOTrainer(model=model,
+                                    tokenizer=tokenizer,
+                                    args=training_args,
+                                    **data_module)
+    elif training_args.task == 'SimPO':
+        trainer = LLaVA15SimPOTrainer(model=model,
                                     tokenizer=tokenizer,
                                     args=training_args,
                                     **data_module)

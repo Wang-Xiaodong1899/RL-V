@@ -17,6 +17,8 @@ echo "Using $n_gpu GPUs: $gpu_ids"
 # zero-2 for process logps
 # zero-3 for training
 
+export SFT_weight=0.5
+
 deepspeed --include=localhost:4,5,6,7 /home/user/wangxd/RL-V/muffin/train/train_llava15.py \
     --deepspeed /home/user/wangxd/RL-V/script/zero2.json  \
     --model_name_or_path /data2/wangxd/models/llava-v1.5-7b \
@@ -52,11 +54,12 @@ deepspeed --include=localhost:4,5,6,7 /home/user/wangxd/RL-V/muffin/train/train_
     --model_max_length 2048 \
     --gradient_checkpointing True \
     --lazy_preprocess True \
-    --task DPO \
     --report_to wandb \
     --run_name $exp_name \
     --dataloader_num_workers 16 \
     --dpo_use_average False \
     --dpo_token_weighted False \
     --dpo_token_weight 1.0 \
-    --dpo_beta 0.1
+    --dpo_beta 2.0 \
+    --task SimPO \
+    --dpo_use_average True \

@@ -651,7 +651,7 @@ class RLHFDataset(torch_data.Dataset):
             # "id", "chsosen", "rejected", "answer", "prompt", "image": xxx.jpg
             for item in hf_data:
                 item["ds_name"] = "RLHF"
-                item["image_id"] = os.path.join("/data/wangxd/mscoco/train2014/", item["image"])
+                item["image_id"] = os.path.join("/data/wangxd/mscoco/train2014/", "COCO_train2014_" + item["image"])
                 item["image"] = item["image_id"]
                 item["question"] = item["prompt"].replace("<image>", "").strip()
                 item["chosen"] = item["chosen"]

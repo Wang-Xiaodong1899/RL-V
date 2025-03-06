@@ -166,7 +166,7 @@ class PreferenceInferenceDataset(torch_data.Dataset):
             rejected = {'from': 'gpt', 'value': sample['rejected']}
 
         if self.has_image:
-            if sample['ds_name'] not in ['SEVA', 'POVID', 'CSR']:
+            if sample['ds_name'] not in ['SEVA', 'POVID', 'CSR', 'RLHF']:
                 image = bytes_to_PIL_image(sample['image']['bytes'])
             else:
                 image = Image.open(sample["image_id"]).convert("RGB")
